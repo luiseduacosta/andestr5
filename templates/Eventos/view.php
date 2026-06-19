@@ -3,8 +3,6 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Evento $evento
  */
-pr($evento);
-die();
 ?>
 <div class="row">
     <aside class="column">

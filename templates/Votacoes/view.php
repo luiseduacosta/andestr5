@@ -24,7 +24,7 @@
                 </tr>
                 <tr>
                     <th><?= __('Evento') ?></th>
-                    <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->evento, ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
+                    <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
                 </tr>
                 <tr>
                     <th><?= __('Item') ?></th>

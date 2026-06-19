@@ -27,7 +27,7 @@
                 <tr>
                     <td><?= $this->Number->format($apoio->id) ?></td>
                     <td><?= h($apoio->nomedoevento) ?></td>
-                    <td><?= $apoio->hasValue('evento') ? $this->Html->link($apoio->evento->evento, ['controller' => 'Eventos', 'action' => 'view', $apoio->evento->id]) : '' ?></td>
+                    <td><?= $apoio->hasValue('evento') ? $this->Html->link($apoio->evento->nome ?: __('Evento #{0}', $apoio->evento->id), ['controller' => 'Eventos', 'action' => 'view', $apoio->evento->id]) : '' ?></td>
                     <td><?= h($apoio->caderno) ?></td>
                     <td><?= $this->Number->format($apoio->numero_texto) ?></td>
                     <td><?= h($apoio->tema) ?></td>

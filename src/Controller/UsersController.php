@@ -11,6 +11,20 @@ namespace App\Controller;
 class UsersController extends AppController
 {
     /**
+     * Login method.
+     *
+     * Placeholder login screen until authentication is configured.
+     *
+     * @return \Cake\Http\Response|null|void Renders view
+     */
+    public function login()
+    {
+        if ($this->request->is('post')) {
+            $this->Flash->info(__('Login UI is ready, but authentication has not been configured yet.'));
+        }
+    }
+
+    /**
      * Index method
      *
      * @return \Cake\Http\Response|null|void Renders view

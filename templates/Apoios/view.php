@@ -24,7 +24,7 @@
                 </tr>
                 <tr>
                     <th><?= __('Evento') ?></th>
-                    <td><?= $apoio->hasValue('evento') ? $this->Html->link($apoio->evento->evento, ['controller' => 'Eventos', 'action' => 'view', $apoio->evento->id]) : '' ?></td>
+                    <td><?= $apoio->hasValue('evento') ? $this->Html->link($apoio->evento->nome ?: __('Evento #{0}', $apoio->evento->id), ['controller' => 'Eventos', 'action' => 'view', $apoio->evento->id]) : '' ?></td>
                 </tr>
                 <tr>
                     <th><?= __('Caderno') ?></th>

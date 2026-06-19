@@ -31,7 +31,7 @@
                 <tr>
                     <td><?= $this->Number->format($votacao->id) ?></td>
                     <td><?= $votacao->hasValue('user') ? $this->Html->link($votacao->user->id, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : '' ?></td>
-                    <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->evento, ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
+                    <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
                     <td><?= $this->Number->format($votacao->grupo) ?></td>
                     <td><?= $this->Number->format($votacao->tr) ?></td>
                     <td><?= $this->Number->format($votacao->tr_suprimida) ?></td>
