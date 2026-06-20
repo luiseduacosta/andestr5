@@ -157,6 +157,19 @@ class PolicyTest extends TestCase
         $this->assertTrue($policy->canDelete($editor, $item));
         $this->assertTrue($policy->canDelete($relator, $item));
         $this->assertFalse($policy->canDelete($user1, $item));
+
+        // .99 item tests
+        $item99 = new Item(['item' => '99.99', 'user_id' => 3]);
+        $otherRelator = $this->getIdentity(['id' => 5, 'role' => 'relator']);
+
+        $this->assertTrue($policy->canView($relator, $item99));
+        $this->assertFalse($policy->canView($otherRelator, $item99));
+
+        $this->assertTrue($policy->canEdit($relator, $item99));
+        $this->assertFalse($policy->canEdit($otherRelator, $item99));
+
+        $this->assertTrue($policy->canDelete($relator, $item99));
+        $this->assertFalse($policy->canDelete($otherRelator, $item99));
     }
 
     /**
@@ -166,30 +179,36 @@ class PolicyTest extends TestCase
     {
         $policy = new VotacaoPolicy();
         $admin = $this->getIdentity(['id' => 1, 'role' => 'admin']);
-        $relator = $this->getIdentity(['id' => 2, 'role' => 'relator']);
-        $user1 = $this->getIdentity(['id' => 3, 'role' => 'user']);
+        $editor = $this->getIdentity(['id' => 2, 'role' => 'editor']);
+        $relator = $this->getIdentity(['id' => 3, 'role' => 'relator']);
+        $otherRelator = $this->getIdentity(['id' => 4, 'role' => 'relator']);
 
-        $ownVotacao = new Votacao(['user_id' => 3]);
-        $otherVotacao = new Votacao(['user_id' => 4]);
+        $relatorVotacao = new Votacao(['user_id' => 3]);
 
         $this->assertTrue($policy->canIndex($admin));
-        $this->assertTrue($policy->canIndex($user1));
-        $this->assertTrue($policy->canView($admin, $ownVotacao));
-        $this->assertTrue($policy->canView($user1, $ownVotacao));
+        $this->assertTrue($policy->canIndex($relator));
+
+        // View
+        $this->assertTrue($policy->canView($admin, $relatorVotacao));
+        $this->assertTrue($policy->canView($editor, $relatorVotacao));
+        $this->assertTrue($policy->canView($relator, $relatorVotacao));
+        $this->assertFalse($policy->canView($otherRelator, $relatorVotacao));
 
         // Add
-        $this->assertTrue($policy->canAdd($relator, $ownVotacao));
-        $this->assertFalse($policy->canAdd($admin, $ownVotacao));
-        $this->assertFalse($policy->canAdd($user1, $ownVotacao));
+        $this->assertTrue($policy->canAdd($admin, $relatorVotacao));
+        $this->assertTrue($policy->canAdd($relator, $relatorVotacao));
+        $this->assertFalse($policy->canAdd($editor, $relatorVotacao));
 
         // Edit
-        $this->assertTrue($policy->canEdit($relator, $otherVotacao));
-        $this->assertTrue($policy->canEdit($user1, $ownVotacao));
-        $this->assertFalse($policy->canEdit($user1, $otherVotacao));
+        $this->assertTrue($policy->canEdit($admin, $relatorVotacao));
+        $this->assertFalse($policy->canEdit($editor, $relatorVotacao));
+        $this->assertTrue($policy->canEdit($relator, $relatorVotacao));
+        $this->assertFalse($policy->canEdit($otherRelator, $relatorVotacao));
 
         // Delete
-        $this->assertTrue($policy->canDelete($relator, $otherVotacao));
-        $this->assertTrue($policy->canDelete($user1, $ownVotacao));
-        $this->assertFalse($policy->canDelete($user1, $otherVotacao));
+        $this->assertTrue($policy->canDelete($admin, $relatorVotacao));
+        $this->assertFalse($policy->canDelete($editor, $relatorVotacao));
+        $this->assertTrue($policy->canDelete($relator, $relatorVotacao));
+        $this->assertFalse($policy->canDelete($otherRelator, $relatorVotacao));
     }
 }

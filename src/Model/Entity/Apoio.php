@@ -40,6 +40,7 @@ class Apoio extends Entity
         'numero_texto' => true,
         'tema' => true,
         'gt' => true,
+        'gt_id' => true,
         'titulo' => true,
         'autor' => true,
         'texto' => true,

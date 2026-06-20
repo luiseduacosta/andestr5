@@ -48,6 +48,9 @@ class ItemsTable extends Table
             'foreignKey' => 'apoio_id',
             'joinType' => 'INNER',
         ]);
+        $this->belongsTo('Users', [
+            'foreignKey' => 'user_id',
+        ]);
         $this->hasMany('Votacoes', [
             'foreignKey' => 'item_id',
         ]);
@@ -94,6 +97,7 @@ class ItemsTable extends Table
     public function buildRules(RulesChecker $rules): RulesChecker
     {
         $rules->add($rules->existsIn(['apoio_id'], 'Apoios'), ['errorField' => 'apoio_id']);
+        $rules->add($rules->existsIn(['user_id'], 'Users'), ['errorField' => 'user_id']);
 
         return $rules;
     }

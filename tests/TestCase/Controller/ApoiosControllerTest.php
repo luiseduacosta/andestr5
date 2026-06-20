@@ -6,6 +6,7 @@ namespace App\Test\TestCase\Controller;
 use App\Controller\ApoiosController;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use App\Model\Entity\User;
 
 /**
  * App\Controller\ApoiosController Test Case
@@ -24,7 +25,7 @@ class ApoiosControllerTest extends TestCase
     protected array $fixtures = [
         'app.Apoios',
         'app.Eventos',
-        'app.Items',
+        'app.Users',
     ];
 
     /**
@@ -35,18 +36,29 @@ class ApoiosControllerTest extends TestCase
      */
     public function testIndex(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session(['Auth' => $user]);
 
-    /**
-     * Test view method
-     *
-     * @return void
-     * @uses \App\Controller\ApoiosController::view()
-     */
-    public function testView(): void
-    {
-        $this->markTestIncomplete('Not implemented yet.');
+        // Default event is last event: event 2.
+        // Index should contain Apoio Evento 2 and not contain Apoio Evento 1.
+        $this->get('/apoios');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoio Evento 2');
+        $this->assertResponseNotContains('Apoio Evento 1');
+
+        // Set selected event to 1 in session.
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 1
+        ]);
+        $this->get('/apoios');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoio Evento 1');
+        $this->assertResponseNotContains('Apoio Evento 2');
     }
 
     /**
@@ -57,28 +69,39 @@ class ApoiosControllerTest extends TestCase
      */
     public function testAdd(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 2
+        ]);
 
-    /**
-     * Test edit method
-     *
-     * @return void
-     * @uses \App\Controller\ApoiosController::edit()
-     */
-    public function testEdit(): void
-    {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
+        $this->get('/apoios/add');
+        $this->assertResponseOk();
 
-    /**
-     * Test delete method
-     *
-     * @return void
-     * @uses \App\Controller\ApoiosController::delete()
-     */
-    public function testDelete(): void
-    {
-        $this->markTestIncomplete('Not implemented yet.');
+        $data = [
+            'nomedoevento' => 'Evento 2',
+            'caderno' => 'Principal',
+            'numero_texto' => 3,
+            'tema' => 'I',
+            'gt' => 'GT 2',
+            'gt_id' => 2,
+            'titulo' => 'Novo Apoio',
+            'autor' => 'Novo Autor',
+            'texto' => 'Novo Texto',
+        ];
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/apoios/add', $data);
+        $this->assertRedirect(['action' => 'index']);
+
+        // Check it saved with event_id = 2.
+        $apoiosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Apoios');
+        $newApoio = $apoiosTable->find()->order(['id' => 'DESC'])->first();
+        $this->assertNotEmpty($newApoio);
+        $this->assertEquals(2, $newApoio->evento_id);
     }
 }

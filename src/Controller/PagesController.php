@@ -32,6 +32,18 @@ use Cake\View\Exception\MissingTemplateException;
 class PagesController extends AppController
 {
     /**
+     * beforeFilter method
+     *
+     * @param \Cake\Event\EventInterface $event Event
+     * @return void
+     */
+    public function beforeFilter(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeFilter($event);
+        $this->Authentication->allowUnauthenticated(['display']);
+    }
+
+    /**
      * Displays a view
      *
      * @param string ...$path Path segments.
@@ -45,6 +57,7 @@ class PagesController extends AppController
      */
     public function display(string ...$path): ?Response
     {
+        $this->Authorization->skipAuthorization();
         if (!$path) {
             return $this->redirect('/');
         }

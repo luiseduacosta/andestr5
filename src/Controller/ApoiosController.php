@@ -20,6 +20,12 @@ class ApoiosController extends AppController
         $this->Authorization->skipAuthorization();
         $query = $this->Apoios->find()
             ->contain(['Eventos']);
+        
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        if ($selectedEventoId) {
+            $query->where(['Apoios.evento_id' => $selectedEventoId]);
+        }
+
         $apoios = $this->paginate($query);
 
         $this->set(compact('apoios'));
@@ -50,6 +56,10 @@ class ApoiosController extends AppController
         $this->Authorization->authorize($apoio);
         if ($this->request->is('post')) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
+            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+            if ($selectedEventoId) {
+                $apoio->evento_id = $selectedEventoId;
+            }
             if ($this->Apoios->save($apoio)) {
                 $this->Flash->success(__('The apoio has been saved.'));
 
@@ -74,6 +84,10 @@ class ApoiosController extends AppController
         $this->Authorization->authorize($apoio);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
+            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+            if ($selectedEventoId) {
+                $apoio->evento_id = $selectedEventoId;
+            }
             if ($this->Apoios->save($apoio)) {
                 $this->Flash->success(__('The apoio has been saved.'));
 

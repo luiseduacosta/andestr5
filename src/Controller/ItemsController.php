@@ -19,7 +19,22 @@ class ItemsController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Items->find()
-            ->contain(['Apoios']);
+            ->contain(['Apoios', 'Votacoes']);
+
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        if ($selectedEventoId) {
+            $query->innerJoinWith('Apoios')
+                ->where(['Apoios.evento_id' => $selectedEventoId]);
+        }
+
+        $identity = $this->Authentication->getIdentity();
+        if ($identity && $identity->role === 'relator') {
+            $query->where(['OR' => [
+                ['Items.item NOT LIKE' => '%99'],
+                ['Items.user_id' => $identity->id]
+            ]]);
+        }
+
         $items = $this->paginate($query);
 
         $this->set(compact('items'));
@@ -50,6 +65,10 @@ class ItemsController extends AppController
         $this->Authorization->authorize($item);
         if ($this->request->is('post')) {
             $item = $this->Items->patchEntity($item, $this->request->getData());
+            $identity = $this->Authentication->getIdentity();
+            if ($identity) {
+                $item->user_id = $identity->id;
+            }
             if ($this->Items->save($item)) {
                 $this->Flash->success(__('The item has been saved.'));
 
@@ -57,7 +76,12 @@ class ItemsController extends AppController
             }
             $this->Flash->error(__('The item could not be saved. Please, try again.'));
         }
-        $apoios = $this->Items->Apoios->find('list', limit: 200)->all();
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $apoiosQuery = $this->Items->Apoios->find('list');
+        if ($selectedEventoId) {
+            $apoiosQuery->where(['Apoios.evento_id' => $selectedEventoId]);
+        }
+        $apoios = $apoiosQuery->all();
         $this->set(compact('item', 'apoios'));
     }
 
@@ -81,7 +105,12 @@ class ItemsController extends AppController
             }
             $this->Flash->error(__('The item could not be saved. Please, try again.'));
         }
-        $apoios = $this->Items->Apoios->find('list', limit: 200)->all();
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $apoiosQuery = $this->Items->Apoios->find('list');
+        if ($selectedEventoId) {
+            $apoiosQuery->where(['Apoios.evento_id' => $selectedEventoId]);
+        }
+        $apoios = $apoiosQuery->all();
         $this->set(compact('item', 'apoios'));
     }
 

@@ -51,4 +51,55 @@ class AppController extends Controller
          */
         //$this->loadComponent('FormProtection');
     }
+
+    /**
+     * beforeFilter method
+     *
+     * @param \Cake\Event\EventInterface $event Event
+     * @return void
+     */
+    public function beforeFilter(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeFilter($event);
+
+        $session = $this->request->getSession();
+        $selectedEventoId = $session->read('selected_evento_id');
+
+        if (!$selectedEventoId) {
+            $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
+            $lastEvento = $eventosTable->find()->order(['id' => 'DESC'])->first();
+            if ($lastEvento) {
+                $session->write('selected_evento_id', $lastEvento->id);
+            }
+        }
+    }
+
+    /**
+     * beforeRender method
+     *
+     * @param \Cake\Event\EventInterface $event Event
+     * @return void
+     */
+    public function beforeRender(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeRender($event);
+
+        $session = $this->request->getSession();
+        $selectedEventoId = $session->read('selected_evento_id');
+
+        $selectedEvento = null;
+        $allEventos = [];
+
+        if ($selectedEventoId) {
+            $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
+            $selectedEvento = $eventosTable->find()->where(['id' => $selectedEventoId])->first();
+
+            $identity = $this->components()->has('Authentication') ? $this->Authentication->getIdentity() : $this->request->getAttribute('identity');
+            if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
+                $allEventos = $eventosTable->find('list', keyField: 'id', valueField: 'nome')->toArray();
+            }
+        }
+
+        $this->set(compact('selectedEvento', 'allEventos'));
+    }
 }

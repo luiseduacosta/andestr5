@@ -102,4 +102,28 @@ class EventosController extends AppController
 
         return $this->redirect(['action' => 'index']);
     }
+
+    /**
+     * Select active event.
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function select()
+    {
+        $this->Authorization->skipAuthorization();
+        $this->request->allowMethod(['post']);
+
+        $identity = $this->Authentication->getIdentity();
+        if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
+            $eventoId = $this->request->getData('evento_id');
+            if ($eventoId) {
+                $this->request->getSession()->write('selected_evento_id', (int)$eventoId);
+                $this->Flash->success(__('Active event changed.'));
+            }
+        } else {
+            $this->Flash->error(__('You are not authorized to change the active event.'));
+        }
+
+        return $this->redirect($this->referer('/', true));
+    }
 }

@@ -6,6 +6,7 @@ namespace App\Test\TestCase\Controller;
 use App\Controller\EventosController;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use App\Model\Entity\User;
 
 /**
  * App\Controller\EventosController Test Case
@@ -25,60 +26,76 @@ class EventosControllerTest extends TestCase
         'app.Eventos',
         'app.Apoios',
         'app.Votacoes',
+        'app.Users',
     ];
 
     /**
-     * Test index method
+     * Test select method with admin role
      *
      * @return void
-     * @uses \App\Controller\EventosController::index()
      */
-    public function testIndex(): void
+    public function testSelectAdmin(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session(['Auth' => $user]);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        
+        $this->post('/eventos/select', ['evento_id' => 1]);
+        $this->assertSession(1, 'selected_evento_id');
+        $this->assertRedirect();
     }
 
     /**
-     * Test view method
+     * Test select method with editor role
      *
      * @return void
-     * @uses \App\Controller\EventosController::view()
      */
-    public function testView(): void
+    public function testSelectEditor(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $user = new User([
+            'id' => 2,
+            'role' => 'editor',
+            'username' => 'editor'
+        ]);
+        $this->session(['Auth' => $user]);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        
+        $this->post('/eventos/select', ['evento_id' => 1]);
+        $this->assertSession(1, 'selected_evento_id');
+        $this->assertRedirect();
     }
 
     /**
-     * Test add method
+     * Test select method with relator role (unauthorized)
      *
      * @return void
-     * @uses \App\Controller\EventosController::add()
      */
-    public function testAdd(): void
+    public function testSelectRelatorUnauthorized(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
+        $user = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'relator'
+        ]);
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 2 // default to 2
+        ]);
 
-    /**
-     * Test edit method
-     *
-     * @return void
-     * @uses \App\Controller\EventosController::edit()
-     */
-    public function testEdit(): void
-    {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
-
-    /**
-     * Test delete method
-     *
-     * @return void
-     * @uses \App\Controller\EventosController::delete()
-     */
-    public function testDelete(): void
-    {
-        $this->markTestIncomplete('Not implemented yet.');
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        
+        $this->post('/eventos/select', ['evento_id' => 1]);
+        // The session should still have the old value (2)
+        $this->assertSession(2, 'selected_evento_id');
+        $this->assertRedirect();
     }
 }

@@ -17,11 +17,19 @@ class VotacaoPolicy
     }
 
     /**
+     * Check if the user can view reports.
+     */
+    public function canReport(IdentityInterface $user): bool
+    {
+        return true;
+    }
+
+    /**
      * Check if the user can view a votacao.
      */
     public function canView(IdentityInterface $user, Votacao $resource): bool
     {
-        return true;
+        return $user->role === 'admin' || $user->role === 'editor' || (int)$user->id === (int)$resource->user_id;
     }
 
     /**
@@ -29,7 +37,7 @@ class VotacaoPolicy
      */
     public function canAdd(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'relator';
+        return $user->role === 'admin' || $user->role === 'relator';
     }
 
     /**
@@ -37,7 +45,7 @@ class VotacaoPolicy
      */
     public function canEdit(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'relator' || (int)$user->id === (int)$resource->user_id;
+        return $user->role === 'admin' || ($user->role === 'relator' && (int)$user->id === (int)$resource->user_id);
     }
 
     /**
@@ -45,6 +53,6 @@ class VotacaoPolicy
      */
     public function canDelete(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'relator' || (int)$user->id === (int)$resource->user_id;
+        return $user->role === 'admin' || ($user->role === 'relator' && (int)$user->id === (int)$resource->user_id);
     }
 }

@@ -29,10 +29,41 @@
                     <li class="nav-item"><?= $this->Html->link('Apoios', ['controller' => 'Apoios', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Items', ['controller' => 'Items', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Votacoes', ['controller' => 'Votacoes', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
+                    <li class="nav-item"><?= $this->Html->link('Relatório', ['controller' => 'Votacoes', 'action' => 'report'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Users', ['controller' => 'Users', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                 </ul>
-                <div class="d-flex">
-                    <?= $this->Html->link('Login', ['controller' => 'Users', 'action' => 'login'], ['class' => 'btn btn-light']) ?>
+                <div class="d-flex align-items-center">
+                    <?php $identity = $this->request->getAttribute('identity'); ?>
+                    <?php if ($identity): ?>
+                        <?php if ($identity->role === 'admin' || $identity->role === 'editor'): ?>
+                            <?= $this->Form->create(null, [
+                                'url' => ['controller' => 'Eventos', 'action' => 'select'],
+                                'class' => 'd-flex align-items-center me-3',
+                                'id' => 'select-evento-form'
+                            ]) ?>
+                                <span class="text-white me-2 small text-nowrap"><?= __('Evento Ativo:') ?></span>
+                                <?= $this->Form->control('evento_id', [
+                                    'type' => 'select',
+                                    'options' => $allEventos,
+                                    'value' => $selectedEvento ? $selectedEvento->id : null,
+                                    'label' => false,
+                                    'class' => 'form-select form-select-sm',
+                                    'onchange' => 'document.getElementById("select-evento-form").submit()'
+                                ]) ?>
+                            <?= $this->Form->end() ?>
+                        <?php else: ?>
+                            <span class="text-white me-3 small text-nowrap">
+                                <?= __('Evento Ativo:') ?> <strong><?= $selectedEvento ? h($selectedEvento->nome) : __('Nenhum') ?></strong>
+                            </span>
+                        <?php endif; ?>
+
+                        <span class="navbar-text me-3 text-white small text-nowrap">
+                            <?= h($identity->username) ?> (<?= h($identity->role) ?>)
+                        </span>
+                        <?= $this->Html->link('Logout', ['controller' => 'Users', 'action' => 'logout'], ['class' => 'btn btn-outline-light btn-sm']) ?>
+                    <?php else: ?>
+                        <?= $this->Html->link('Login', ['controller' => 'Users', 'action' => 'login'], ['class' => 'btn btn-light btn-sm']) ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -13,9 +13,11 @@ use Cake\ORM\Entity;
  * @property int $tr
  * @property string $item
  * @property string $texto
+ * @property int|null $user_id
  *
  * @property \App\Model\Entity\Apoio $apoio
  * @property \App\Model\Entity\Votacao[] $votacoes
+ * @property \App\Model\Entity\User|null $user
  */
 class Item extends Entity
 {
@@ -33,7 +35,9 @@ class Item extends Entity
         'tr' => true,
         'item' => true,
         'texto' => true,
+        'user_id' => true,
         'apoio' => true,
         'votacoes' => true,
+        'user' => true,
     ];
 }
