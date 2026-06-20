@@ -32,215 +32,83 @@ a {
 
 .content > h3,
 .related > h4,
-.side-nav .heading {
-    margin-bottom: 1rem;
-}
-
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-}
-
-.row > .column {
-    flex: 1 1 0;
-    min-width: 0;
-}
-
-.row > .column.column-80 {
-    flex: 1 1 calc(100% - 18rem);
-}
-
-.row > aside.column {
-    flex: 0 0 17rem;
-}
-
-.side-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    background: #fff;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 1rem;
-    box-shadow: 0 0.125rem 0.5rem rgba(33, 37, 41, 0.05);
-    padding: 1.25rem;
-}
-
-.side-nav-item,
-.actions a,
-.actions button,
-.button,
-button,
-input[type="submit"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    min-height: calc(1.5em + 0.75rem + 2px);
-    padding: 0.375rem 0.75rem;
-    border: 1px solid transparent;
-    border-radius: 0.5rem;
-    background: var(--bs-primary);
-    color: #fff;
-    font-weight: 500;
-    line-height: 1.5;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.side-nav-item:hover,
-.actions a:hover,
-.actions button:hover,
-.button:hover,
-button:hover,
-input[type="submit"]:hover {
-    background: color-mix(in srgb, var(--bs-primary) 90%, #000);
-    color: #fff;
-}
-
-.actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.actions form {
+/* Reset margin on forms inside action button cells */
+td form,
+th form {
     margin: 0;
-}
-
-.float-right {
-    float: right;
 }
 
 .table-responsive {
     overflow-x: auto;
 }
 
-table {
-    width: 100%;
-    margin-bottom: 0;
-    color: var(--bs-body-color);
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-table > :not(caption) > * > * {
-    padding: 0.875rem 1rem;
-    background-color: transparent;
-    border-bottom: 1px solid var(--bs-border-color);
-}
-
-thead th {
-    background: var(--bs-tertiary-bg);
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-tbody tr:hover {
-    background: rgba(13, 110, 253, 0.03);
-}
-
-fieldset {
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
-legend {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.input,
-.date,
-.datetime,
-.number,
-.text,
-.textarea,
-.select {
-    margin-bottom: 1rem;
-}
-
-label {
-    display: inline-block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-input[type="text"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-input[type="datetime-local"],
-input[type="email"],
-select,
-textarea {
-    display: block;
-    width: 100%;
-    padding: 0.625rem 0.75rem;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: var(--bs-body-color);
-    background-color: var(--bs-body-bg);
-    background-clip: padding-box;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.5rem;
-    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: rgba(13, 110, 253, 0.5);
-    outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-}
-
-textarea {
-    min-height: 8rem;
-}
-
-.paginator {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
+/* Make CakePHP paginator work with Bootstrap pagination styles */
 .pagination {
-    display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.25rem;
     margin: 0;
-    padding: 0;
-    list-style: none;
+}
+
+.pagination li {
+    display: inline-flex;
 }
 
 .pagination li a,
-.pagination li span,
-.pagination a {
+.pagination li span {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2.5rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.5rem;
-    background: #fff;
-    color: var(--bs-primary);
+    min-width: 2.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--bs-pagination-color);
+    background-color: var(--bs-pagination-bg);
+    border: var(--bs-pagination-border-width) solid var(--bs-pagination-border-color);
+    border-radius: var(--bs-border-radius);
+    text-decoration: none;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
 }
 
-.pagination .active a,
-.pagination li a:hover,
-.pagination a:hover {
-    background: var(--bs-primary);
-    border-color: var(--bs-primary);
-    color: #fff;
+.pagination li a:hover {
+    color: var(--bs-pagination-hover-color);
+    background-color: var(--bs-pagination-hover-bg);
+    border-color: var(--bs-pagination-hover-border-color);
+}
+
+.pagination li.active a,
+.pagination li.active span,
+.pagination li a:active {
+    color: var(--bs-pagination-active-color);
+    background-color: var(--bs-pagination-active-bg);
+    border-color: var(--bs-pagination-active-border-color);
+}
+
+.pagination li.disabled a,
+.pagination li.disabled span {
+    color: var(--bs-pagination-disabled-color);
+    background-color: var(--bs-pagination-disabled-bg);
+    border-color: var(--bs-pagination-disabled-border-color);
+    pointer-events: none;
+}
+
+/* Description list in view templates */
+dl.row dt {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+dl.row dd {
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    dl.row dt {
+        margin-bottom: 0.75rem;
+    }
+    dl.row dd {
+        margin-bottom: 0.75rem;
+    }
 }
 
 blockquote {
@@ -256,6 +124,32 @@ blockquote {
     margin-top: 0.5rem;
     color: var(--bs-danger);
     font-size: 0.875rem;
+}
+
+/* CakePHP form wrapper compatibility with Bootstrap */
+.input {
+    margin-bottom: var(--bs-spacer);
+}
+
+.input.form-control,
+.input.form-select {
+    padding: 0;
+    border: 0;
+}
+
+.input textarea.form-control {
+    min-height: 8rem;
+}
+
+/* Ensure labels inside CakePHP form controls use form-label */
+.input label {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.input.form-check label {
+    margin-bottom: 0;
 }
 
 @media (max-width: 991.98px) {

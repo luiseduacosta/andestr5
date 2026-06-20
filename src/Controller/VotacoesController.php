@@ -17,6 +17,7 @@ class VotacoesController extends AppController
      */
     public function index()
     {
+        $this->Authorization->skipAuthorization();
         $query = $this->Votacoes->find()
             ->contain(['Users', 'Eventos', 'Items']);
         $votacoes = $this->paginate($query);
@@ -34,6 +35,7 @@ class VotacoesController extends AppController
     public function view($id = null)
     {
         $votacao = $this->Votacoes->get($id, contain: ['Users', 'Eventos', 'Items']);
+        $this->Authorization->authorize($votacao);
         $this->set(compact('votacao'));
     }
 
@@ -45,6 +47,7 @@ class VotacoesController extends AppController
     public function add()
     {
         $votacao = $this->Votacoes->newEmptyEntity();
+        $this->Authorization->authorize($votacao);
         if ($this->request->is('post')) {
             $votacao = $this->Votacoes->patchEntity($votacao, $this->request->getData());
             if ($this->Votacoes->save($votacao)) {
@@ -70,6 +73,7 @@ class VotacoesController extends AppController
     public function edit($id = null)
     {
         $votacao = $this->Votacoes->get($id, contain: []);
+        $this->Authorization->authorize($votacao);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $votacao = $this->Votacoes->patchEntity($votacao, $this->request->getData());
             if ($this->Votacoes->save($votacao)) {
@@ -96,6 +100,7 @@ class VotacoesController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $votacao = $this->Votacoes->get($id);
+        $this->Authorization->authorize($votacao);
         if ($this->Votacoes->delete($votacao)) {
             $this->Flash->success(__('The votacao has been deleted.'));
         } else {

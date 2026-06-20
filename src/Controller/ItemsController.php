@@ -17,6 +17,7 @@ class ItemsController extends AppController
      */
     public function index()
     {
+        $this->Authorization->skipAuthorization();
         $query = $this->Items->find()
             ->contain(['Apoios']);
         $items = $this->paginate($query);
@@ -34,6 +35,7 @@ class ItemsController extends AppController
     public function view($id = null)
     {
         $item = $this->Items->get($id, contain: ['Apoios', 'Votacoes']);
+        $this->Authorization->authorize($item);
         $this->set(compact('item'));
     }
 
@@ -45,6 +47,7 @@ class ItemsController extends AppController
     public function add()
     {
         $item = $this->Items->newEmptyEntity();
+        $this->Authorization->authorize($item);
         if ($this->request->is('post')) {
             $item = $this->Items->patchEntity($item, $this->request->getData());
             if ($this->Items->save($item)) {
@@ -68,6 +71,7 @@ class ItemsController extends AppController
     public function edit($id = null)
     {
         $item = $this->Items->get($id, contain: []);
+        $this->Authorization->authorize($item);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $item = $this->Items->patchEntity($item, $this->request->getData());
             if ($this->Items->save($item)) {
@@ -92,6 +96,7 @@ class ItemsController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $item = $this->Items->get($id);
+        $this->Authorization->authorize($item);
         if ($this->Items->delete($item)) {
             $this->Flash->success(__('The item has been deleted.'));
         } else {

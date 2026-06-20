@@ -14,6 +14,7 @@ use Cake\Validation\Validator;
  * @property \App\Model\Table\UsersTable&\Cake\ORM\Association\BelongsTo $Users
  * @property \App\Model\Table\EventosTable&\Cake\ORM\Association\BelongsTo $Eventos
  * @property \App\Model\Table\ItemsTable&\Cake\ORM\Association\BelongsTo $Items
+ * @property \App\Model\Table\ItemsTable&\Cake\ORM\Association\BelongsTo $VotacaoItem
  *
  * @method \App\Model\Entity\Votacao newEmptyEntity()
  * @method \App\Model\Entity\Votacao newEntity(array $data, array $options = [])
@@ -56,6 +57,7 @@ class VotacoesTable extends Table
         $this->belongsTo('Items', [
             'foreignKey' => 'item_id',
             'joinType' => 'INNER',
+            'propertyName' => 'votacao_item',
         ]);
     }
 

@@ -22,7 +22,7 @@ use Cake\ORM\Entity;
  * @property \Cake\I18n\DateTime $data
  * @property string $observacoes
  *
- * @property \App\Model\Entity\Item $item
+ * @property \App\Model\Entity\Item $votacao_item
  * @property \App\Model\Entity\User $user
  * @property \App\Model\Entity\Evento $evento
  */

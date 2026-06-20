@@ -17,6 +17,7 @@ class ApoiosController extends AppController
      */
     public function index()
     {
+        $this->Authorization->skipAuthorization();
         $query = $this->Apoios->find()
             ->contain(['Eventos']);
         $apoios = $this->paginate($query);
@@ -34,6 +35,7 @@ class ApoiosController extends AppController
     public function view($id = null)
     {
         $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Items']);
+        $this->Authorization->authorize($apoio);
         $this->set(compact('apoio'));
     }
 
@@ -45,6 +47,7 @@ class ApoiosController extends AppController
     public function add()
     {
         $apoio = $this->Apoios->newEmptyEntity();
+        $this->Authorization->authorize($apoio);
         if ($this->request->is('post')) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
             if ($this->Apoios->save($apoio)) {
@@ -68,6 +71,7 @@ class ApoiosController extends AppController
     public function edit($id = null)
     {
         $apoio = $this->Apoios->get($id, contain: []);
+        $this->Authorization->authorize($apoio);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
             if ($this->Apoios->save($apoio)) {
@@ -92,6 +96,7 @@ class ApoiosController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $apoio = $this->Apoios->get($id);
+        $this->Authorization->authorize($apoio);
         if ($this->Apoios->delete($apoio)) {
             $this->Flash->success(__('The apoio has been deleted.'));
         } else {

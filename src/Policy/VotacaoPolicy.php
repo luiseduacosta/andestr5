@@ -1,0 +1,50 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Policy;
+
+use App\Model\Entity\Votacao;
+use Authorization\IdentityInterface;
+
+class VotacaoPolicy
+{
+    /**
+     * Check if the user can index votacoes.
+     */
+    public function canIndex(IdentityInterface $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * Check if the user can view a votacao.
+     */
+    public function canView(IdentityInterface $user, Votacao $resource): bool
+    {
+        return true;
+    }
+
+    /**
+     * Check if the user can add a votacao.
+     */
+    public function canAdd(IdentityInterface $user, Votacao $resource): bool
+    {
+        return $user->role === 'relator';
+    }
+
+    /**
+     * Check if the user can edit a votacao.
+     */
+    public function canEdit(IdentityInterface $user, Votacao $resource): bool
+    {
+        return $user->role === 'relator' || (int)$user->id === (int)$resource->user_id;
+    }
+
+    /**
+     * Check if the user can delete a votacao.
+     */
+    public function canDelete(IdentityInterface $user, Votacao $resource): bool
+    {
+        return $user->role === 'relator' || (int)$user->id === (int)$resource->user_id;
+    }
+}

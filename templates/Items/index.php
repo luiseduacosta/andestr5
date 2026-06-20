@@ -4,18 +4,28 @@
  * @var iterable<\App\Model\Entity\Item> $items
  */
 ?>
-<div class="items index content">
-    <?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'button float-right']) ?>
-    <h3><?= __('Items') ?></h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
+<div class="card shadow-sm">
+
+    <div class ="card-header">
+        <h3 class="mb-0"><?= __('Items') ?></h3>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
+            <ul class="navbar navbar-nav ms-auto mt-lg-0">
+                <li class="nav-link">
+                    <?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'btn btn-primary']) ?>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="card-body table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
                 <tr>
                     <th><?= $this->Paginator->sort('id') ?></th>
                     <th><?= $this->Paginator->sort('apoio_id') ?></th>
-                    <th><?= $this->Paginator->sort('tr') ?></th>
+                    <th><?= $this->Paginator->sort('tr', 'TR') ?></th>
                     <th><?= $this->Paginator->sort('item') ?></th>
-                    <th class="actions"><?= __('Actions') ?></th>
+                    <th class="d-flex flex-wrap gap-2"><?= __('Actions') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -25,24 +35,25 @@
                     <td><?= $item->hasValue('apoio') ? $this->Html->link($item->apoio->caderno, ['controller' => 'Apoios', 'action' => 'view', $item->apoio->id]) : '' ?></td>
                     <td><?= $this->Number->format($item->tr) ?></td>
                     <td><?= h($item->item) ?></td>
-                    <td class="actions">
-                        <?= $this->Html->link(__('View'), ['action' => 'view', $item->id]) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $item->id]) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id)]) ?>
+                    <td class="d-flex flex-wrap gap-2">
+                        <?= $this->Html->link(__('View'), ['action' => 'view', $item->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
+                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $item->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-    <div class="paginator">
-        <ul class="pagination">
+
+    <div class="paginator d-flex justify-content-between align-items-center mt-3">
+        <ul class="pagination pagination-sm mb-0">
             <?= $this->Paginator->first('<< ' . __('first')) ?>
             <?= $this->Paginator->prev('< ' . __('previous')) ?>
             <?= $this->Paginator->numbers() ?>
             <?= $this->Paginator->next(__('next') . ' >') ?>
             <?= $this->Paginator->last(__('last') . ' >>') ?>
         </ul>
-        <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
+        <p class="text-body-secondary small mb-0"><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
     </div>
 </div>

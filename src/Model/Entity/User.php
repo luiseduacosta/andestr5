@@ -45,4 +45,18 @@ class User extends Entity
     protected array $_hidden = [
         'password',
     ];
+
+    /**
+     * Hash password before saving.
+     *
+     * @param string $password Password to hash
+     * @return string|null Hashed password
+     */
+    protected function _setPassword(string $password): ?string
+    {
+        if (strlen($password) > 0) {
+            return (new \Authentication\PasswordHasher\DefaultPasswordHasher())->hash($password);
+        }
+        return $password;
+    }
 }

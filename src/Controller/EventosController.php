@@ -17,6 +17,7 @@ class EventosController extends AppController
      */
     public function index()
     {
+        $this->Authorization->skipAuthorization();
         $query = $this->Eventos->find();
         $eventos = $this->paginate($query);
 
@@ -33,6 +34,7 @@ class EventosController extends AppController
     public function view($id = null)
     {
         $evento = $this->Eventos->get($id, contain: ['Apoios' => ['Items' => ['Votacoes']]]);
+        $this->Authorization->authorize($evento);
         $this->set(compact('evento'));
     }
 
@@ -44,6 +46,7 @@ class EventosController extends AppController
     public function add()
     {
         $evento = $this->Eventos->newEmptyEntity();
+        $this->Authorization->authorize($evento);
         if ($this->request->is('post')) {
             $evento = $this->Eventos->patchEntity($evento, $this->request->getData());
             if ($this->Eventos->save($evento)) {
@@ -66,6 +69,7 @@ class EventosController extends AppController
     public function edit($id = null)
     {
         $evento = $this->Eventos->get($id, contain: []);
+        $this->Authorization->authorize($evento);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $evento = $this->Eventos->patchEntity($evento, $this->request->getData());
             if ($this->Eventos->save($evento)) {
@@ -89,6 +93,7 @@ class EventosController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $evento = $this->Eventos->get($id);
+        $this->Authorization->authorize($evento);
         if ($this->Eventos->delete($evento)) {
             $this->Flash->success(__('The evento has been deleted.'));
         } else {
