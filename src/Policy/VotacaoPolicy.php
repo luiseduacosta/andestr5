@@ -55,4 +55,19 @@ class VotacaoPolicy
     {
         return $user->role === 'admin' || ($user->role === 'relator' && (int)$user->id === (int)$resource->user_id);
     }
+
+    public function canVotarTr(IdentityInterface $user): bool
+    {
+        return $user->role === 'admin' || $user->role === 'relator';
+    }
+
+    public function canVotarItem(IdentityInterface $user): bool
+    {
+        return $user->role === 'admin' || $user->role === 'relator';
+    }
+
+    public function canVotarRestantes(IdentityInterface $user): bool
+    {
+        return $user->role === 'admin' || $user->role === 'relator';
+    }
 }

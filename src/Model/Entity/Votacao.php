@@ -21,6 +21,7 @@ use Cake\ORM\Entity;
  * @property string $item_modificada
  * @property \Cake\I18n\DateTime $data
  * @property string $observacoes
+ * @property bool $destaque_minoria
  *
  * @property \App\Model\Entity\Item $votacao_item
  * @property \App\Model\Entity\User $user
@@ -51,6 +52,7 @@ class Votacao extends Entity
         'item_modificada' => true,
         'data' => true,
         'observacoes' => true,
+        'destaque_minoria' => true,
         'user' => true,
         'evento' => true,
     ];

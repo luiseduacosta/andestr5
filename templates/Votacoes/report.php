@@ -4,6 +4,7 @@
  * @var iterable<\App\Model\Entity\Item> $items
  * @var string|null $trInput
  * @var array<int> $trList
+ * @var array $destaques
  */
 
 // Group items by TR
@@ -22,6 +23,42 @@ if (!empty($items)) {
         </div>
     </div>
 </div>
+
+<?php if (!empty($destaques)): ?>
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm border-0 border-warning rounded-4 overflow-hidden">
+            <div class="card-header bg-warning text-dark border-0 py-3 px-4">
+                <h5 class="mb-0 fw-bold"><?= __('⚠ Destaques de Minoria (≥ 1/3) — serão debatidos na plenária') ?></h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><?= __('TR') ?></th>
+                            <th><?= __('Item') ?></th>
+                            <th><?= __('Resultado') ?></th>
+                            <th><?= __('Votação') ?></th>
+                            <th><?= __('Relator') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($destaques as $d): ?>
+                            <tr>
+                                <td><?= h($d['tr']) ?></td>
+                                <td><?= h($d['item']) ?></td>
+                                <td><span class="fw-semibold text-danger"><?= h($d['resultado']) ?></span></td>
+                                <td><?= h($d['votacao']) ?></td>
+                                <td><?= h($d['user']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="row">
     <div class="col-lg-4 col-12 mb-4">
@@ -123,6 +160,9 @@ if (!empty($items)) {
                                                                 <span class="fw-semibold text-secondary">
                                                                     <?= h($vote->resultado) ?>
                                                                 </span>
+                                                                <?php if ($vote->destaque_minoria): ?>
+                                                                    <span class="badge bg-warning text-dark ms-1"><?= __('⚠ Destaque de Minoria') ?></span>
+                                                                <?php endif; ?>
                                                             </td>
                                                             <td><small class="text-muted"><?= h($vote->user->username) ?></small></td>
                                                         </tr>

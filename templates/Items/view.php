@@ -33,6 +33,49 @@
                     <?= $this->Text->autoParagraph($item->texto); ?>
                 </blockquote>
             </div>
+
+            <?php
+                $grupo = $item->apoio->gt_id ?? null;
+                $tr = $item->tr;
+            ?>
+            <?php if ($grupo && $tr): ?>
+            <div class="card border-primary-subtle bg-primary-subtle bg-opacity-10 mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><?= __('⚡ Fluxo de Votação') ?></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <div class="card border-danger h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title"><?= __('Fase 1 — Votação da TR') ?></h6>
+                                    <p class="card-text small text-muted"><?= __('Rejeitar toda a TR {0} (Grupo {1})', $tr, $grupo) ?></p>
+                                    <?= $this->Html->link(__('Ir para Fase 1'), ['controller' => 'Votacoes', 'action' => 'votarTr', $grupo, $tr], ['class' => 'btn btn-outline-danger btn-sm']) ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-warning h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title"><?= __('Fase 2 — Votar este Item') ?></h6>
+                                    <p class="card-text small text-muted"><?= __('Item {0} em discussão. Registrar voto, modificação e destaque.', $item->item) ?></p>
+                                    <?= $this->Html->link(__('Ir para Fase 2'), ['controller' => 'Votacoes', 'action' => 'votarItem', $item->id], ['class' => 'btn btn-outline-warning btn-sm']) ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title"><?= __('Fase 3 — Aprovar Restantes') ?></h6>
+                                    <p class="card-text small text-muted"><?= __('Voto afirmativo em bloco nos itens não discutidos da TR {0}.', $tr) ?></p>
+                                    <?= $this->Html->link(__('Ir para Fase 3'), ['controller' => 'Votacoes', 'action' => 'votarRestantes', $grupo, $tr], ['class' => 'btn btn-outline-success btn-sm']) ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             <div class="card mt-4">
                 <h4><?= __('Votações') ?></h4>
                 <?php if (!empty($item->votacoes)) : ?>

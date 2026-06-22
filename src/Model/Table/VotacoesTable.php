@@ -115,7 +115,11 @@ class VotacoesTable extends Table
             ->scalar('votacao')
             ->maxLength('votacao', 10)
             ->requirePresence('votacao', 'create')
-            ->notEmptyString('votacao');
+            ->notEmptyString('votacao')
+            ->add('votacao', 'formato', [
+                'rule' => ['custom', '/^\d{1,2}\/\d{1,2}\/\d{1,2}$/'],
+                'message' => __('O campo votação deve estar no formato XX/XX/XX (ex: 15/6/0).'),
+            ]);
 
         $validator
             ->scalar('item_modificada')
@@ -132,6 +136,40 @@ class VotacoesTable extends Table
             ->notEmptyString('observacoes');
 
         return $validator;
+    }
+
+    /**
+     * Custom finder: itens de uma TR sem voto registrado no evento.
+     *
+     * @param \Cake\ORM\Query\SelectQuery $query
+     * @param array $options Espera 'grupo', 'tr', 'evento_id'
+     * @return \Cake\ORM\Query\SelectQuery
+     */
+    public function findItensSemVoto(SelectQuery $query, array $options): SelectQuery
+    {
+        $grupo = (int)($options['grupo'] ?? 0);
+        $tr = (int)($options['tr'] ?? 0);
+        $eventoId = (int)($options['evento_id'] ?? 0);
+
+        if ($grupo === 0 || $tr === 0 || $eventoId === 0) {
+            return $query->where(['1 = 0']);
+        }
+
+        // Subquery: IDs dos itens que JÁ têm voto neste evento
+        $votados = $this->find()
+            ->select(['Votacoes.item_id'])
+            ->distinct()
+            ->where(['Votacoes.evento_id' => $eventoId]);
+
+        return $this->Items->find()
+            ->select(['Items.id', 'Items.item', 'Items.tr', 'Items.texto'])
+            ->innerJoinWith('Apoios')
+            ->where([
+                'Apoios.evento_id' => $eventoId,
+                'Items.tr' => $tr,
+                'Items.id NOT IN' => $votados,
+            ])
+            ->order(['Items.item' => 'ASC']);
     }
 
     /**

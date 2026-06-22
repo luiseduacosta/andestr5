@@ -223,6 +223,200 @@ class VotacoesController extends AppController
     }
 
     /**
+     * Fase 1 — Votação da TR inteira (rejeição opcional).
+     *
+     * @param string|null $grupo Grupo number.
+     * @param string|null $tr TR number.
+     * @return \Cake\Http\Response|null|void
+     */
+    public function votarTr($grupo = null, $tr = null)
+    {
+        $this->Authorization->skipAuthorization();
+
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
+
+        $grupo = (int)$grupo;
+        $tr = (int)$tr;
+
+        if (!$grupo || !$tr || !$selectedEventoId) {
+            $this->Flash->error(__('Parâmetros inválidos.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        // Buscar itens desta TR no evento ativo
+        $itensTr = $this->Votacoes->Items->find()
+            ->innerJoinWith('Apoios')
+            ->where([
+                'Apoios.evento_id' => $selectedEventoId,
+                'Items.tr' => $tr,
+            ])
+            ->order(['Items.item' => 'ASC'])
+            ->all();
+
+        if ($itensTr->isEmpty()) {
+            $this->Flash->error(__('Nenhum item encontrado para esta TR.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if ($this->request->is('post')) {
+            $data = $this->request->getData();
+            $resultado = $data['resultado'] ?? '';
+
+            if ($resultado === 'Rejeitado') {
+                $entities = [];
+                foreach ($itensTr as $item) {
+                    $votacao = $this->Votacoes->newEmptyEntity();
+                    $votacao->user_id = $identity->id;
+                    $votacao->evento_id = $selectedEventoId;
+                    $votacao->grupo = $grupo;
+                    $votacao->tr = $tr;
+                    $votacao->tr_suprimida = 1;
+                    $votacao->tr_aprovada = 0;
+                    $votacao->item_id = $item->id;
+                    $votacao->item = $item->item;
+                    $votacao->resultado = 'Rejeitado';
+                    $votacao->votacao = $data['votacao'] ?? '';
+                    $votacao->item_modificada = '';
+                    $votacao->data = new \Cake\I18n\DateTime();
+                    $votacao->observacoes = $data['observacoes'] ?? '';
+                    $votacao->destaque_minoria = false;
+                    $entities[] = $votacao;
+                }
+
+                if ($this->Votacoes->saveMany($entities)) {
+                    $this->Flash->success(__('Votação de rejeição da TR {0} registrada em {1} itens.', $tr, count($entities)));
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('Erro ao salvar a votação da TR. Tente novamente.'));
+            } else {
+                // TR não rejeitada — nada registrado
+                $this->Flash->success(__('TR {0} aprovada. Prossiga para votação dos itens em discussão.', $tr));
+                return $this->redirect(['action' => 'index']);
+            }
+        }
+
+        $this->set(compact('itensTr', 'grupo', 'tr'));
+    }
+
+    /**
+     * Fase 2 — Votação individual de item em discussão.
+     *
+     * @param string|null $itemId Item id.
+     * @return \Cake\Http\Response|null|void
+     */
+    public function votarItem($itemId = null)
+    {
+        $this->Authorization->skipAuthorization();
+
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
+
+        $itemId = (int)$itemId;
+        if (!$itemId || !$selectedEventoId) {
+            $this->Flash->error(__('Parâmetros inválidos.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        try {
+            $item = $this->Votacoes->Items->get($itemId, contain: ['Apoios']);
+        } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
+            $this->Flash->error(__('Item não encontrado.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if ($this->request->is('post')) {
+            $data = $this->request->getData();
+
+            $votacao = $this->Votacoes->newEmptyEntity();
+            $votacao = $this->Votacoes->patchEntity($votacao, $data);
+            $votacao->user_id = $identity->id;
+            $votacao->evento_id = $selectedEventoId;
+            $votacao->grupo = $item->apoio->gt_id ?? 0;
+            $votacao->tr = $item->tr;
+            $votacao->item_id = $item->id;
+            $votacao->item = $item->item;
+            $votacao->data = new \Cake\I18n\DateTime();
+
+            if ($this->Votacoes->save($votacao)) {
+                $this->Flash->success(__('Votação do item {0} registrada.', $item->item));
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('Erro ao salvar a votação do item. Tente novamente.'));
+        }
+
+        // Calcular minoria para destaque no GET
+        $destaqueCalculado = false;
+        $this->set(compact('item', 'destaqueCalculado'));
+    }
+
+    /**
+     * Fase 3 — Aprovação em bloco dos itens não discutidos.
+     *
+     * @param string|null $grupo Grupo number.
+     * @param string|null $tr TR number.
+     * @return \Cake\Http\Response|null|void
+     */
+    public function votarRestantes($grupo = null, $tr = null)
+    {
+        $this->Authorization->skipAuthorization();
+
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
+
+        $grupo = (int)$grupo;
+        $tr = (int)$tr;
+
+        if (!$grupo || !$tr || !$selectedEventoId) {
+            $this->Flash->error(__('Parâmetros inválidos.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        // Usar o finder personalizado
+        $itensRestantes = $this->Votacoes->findItensSemVoto(
+            $this->Votacoes->Items->find(),
+            ['grupo' => $grupo, 'tr' => $tr, 'evento_id' => $selectedEventoId]
+        )->all();
+
+        if ($itensRestantes->isEmpty()) {
+            $this->Flash->success(__('Todos os itens da TR {0} já possuem votação registrada.', $tr));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if ($this->request->is('post')) {
+            $data = $this->request->getData();
+
+            $entities = [];
+            foreach ($itensRestantes as $item) {
+                $votacao = $this->Votacoes->newEmptyEntity();
+                $votacao->user_id = $identity->id;
+                $votacao->evento_id = $selectedEventoId;
+                $votacao->grupo = $grupo;
+                $votacao->tr = $tr;
+                $votacao->tr_suprimida = 0;
+                $votacao->tr_aprovada = 0;
+                $votacao->item_id = $item->id;
+                $votacao->item = $item->item;
+                $votacao->resultado = 'Aprovado';
+                $votacao->votacao = $data['votacao'] ?? '';
+                $votacao->item_modificada = '';
+                $votacao->data = new \Cake\I18n\DateTime();
+                $votacao->observacoes = $data['observacoes'] ?? '';
+                $votacao->destaque_minoria = false;
+                $entities[] = $votacao;
+            }
+
+            if ($this->Votacoes->saveMany($entities)) {
+                $this->Flash->success(__('Votação afirmativa registrada em {0} itens da TR {1}.', count($entities), $tr));
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('Erro ao salvar a votação dos itens restantes. Tente novamente.'));
+        }
+
+        $this->set(compact('itensRestantes', 'grupo', 'tr'));
+    }
+
+    /**
      * Report method
      *
      * @return \Cake\Http\Response|null|void Renders view
@@ -248,7 +442,9 @@ class VotacoesController extends AppController
             if (!empty($trList) && $selectedEventoId) {
                 $items = $this->Votacoes->Items->find()
                     ->contain(['Apoios', 'Votacoes' => function ($q) use ($selectedEventoId) {
-                        return $q->where(['Votacoes.evento_id' => $selectedEventoId])->contain(['Users']);
+                        return $q->where(['Votacoes.evento_id' => $selectedEventoId])
+                            ->contain(['Users'])
+                            ->order(['Votacoes.id' => 'ASC']);
                     }])
                     ->innerJoinWith('Apoios')
                     ->where([
@@ -257,9 +453,26 @@ class VotacoesController extends AppController
                     ])
                     ->order(['Items.tr' => 'ASC', 'Items.item' => 'ASC'])
                     ->all();
+
+                // Coletar destaques de minoria
+                $destaques = [];
+                foreach ($items as $item) {
+                    foreach ($item->votacoes as $votacao) {
+                        if ($votacao->destaque_minoria) {
+                            $destaques[] = [
+                                'item' => $item->item,
+                                'tr' => $item->tr,
+                                'votacao' => $votacao->votacao,
+                                'resultado' => $votacao->resultado,
+                                'user' => $votacao->user->username ?? '',
+                            ];
+                        }
+                    }
+                }
             }
         }
 
-        $this->set(compact('items', 'trInput', 'trList'));
+        $destaques = $destaques ?? [];
+        $this->set(compact('items', 'trInput', 'trList', 'destaques'));
     }
 }
