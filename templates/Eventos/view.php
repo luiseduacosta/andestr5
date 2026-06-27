@@ -9,9 +9,9 @@
         <?php if (!$identity || ($identity->role !== 'relator')): ?>
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
             <ul class="navbar navbar-nav ms-auto mt-lg-0">
+                <li class="nav-item"><?= $this->Html->link(__('List Eventos'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('Edit Evento'), ['action' => 'edit', $evento->id], ['class' => 'btn btn-primary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Form->postLink(__('Delete Evento'), ['action' => 'delete', $evento->id], ['confirm' => __('Are you sure you want to delete # {0}?', $evento->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
-                <li class="nav-item"><?= $this->Html->link(__('List Eventos'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('New Evento'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
             </ul>
         </nav>
@@ -33,6 +33,7 @@
                 <dt class="col-sm-4 text-secondary"><?= __('Ordem') ?></dt>
                 <dd class="col-sm-8"><?= $this->Number->format($evento->ordem) ?></dd>
             </dl>
+            <!--// Show only the id, numero texto, titulo, autor and a few linhas of the texto-->
             <div class="card mt-4">
                 <h4><?= __('Apoios') ?></h4>
                 <?php if (!empty($evento->apoios)) : ?>
@@ -41,12 +42,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th><?= __('Id') ?></th>
-                                <th><?= __('Evento') ?></th>
-                                <th><?= __('Evento Id') ?></th>
-                                <th><?= __('Caderno') ?></th>
                                 <th><?= __('Numero Texto') ?></th>
-                                <th><?= __('Tema') ?></th>
-                                <th><?= __('Gt') ?></th>
                                 <th><?= __('Titulo') ?></th>
                                 <th><?= __('Autor') ?></th>
                                 <th><?= __('Texto') ?></th>
@@ -57,15 +53,66 @@
                         <?php foreach ($evento->apoios as $apoio) : ?>
                         <tr>
                             <td><?= h($apoio->id) ?></td>
-                            <td><?= h($apoio->nomedoevento) ?></td>
-                            <td><?= h($apoio->evento_id) ?></td>
-                            <td><?= h($apoio->caderno) ?></td>
                             <td><?= h($apoio->numero_texto) ?></td>
-                            <td><?= h($apoio->tema) ?></td>
-                            <td><?= h($apoio->gt) ?></td>
                             <td><?= h($apoio->titulo) ?></td>
-                            <td><?= $apoio->autor ?></td>
-                            <td><?= $apoio->texto ?></td>
+                            <td>
+                                <div class="autor-truncated">
+                                    <?= h(mb_substr($apoio->autor, 0, 300)) ?><?= mb_strlen($apoio->autor) > 300 ? '...' : '' ?>
+                                </div>
+                                <?php if (mb_strlen($apoio->autor) > 300): ?>
+                                    <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto" data-bs-toggle="modal" data-bs-target="#modalAutor<?= $apoio->id ?>">
+                                        <?= __('Ver autor completo') ?>
+                                    </button>
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="modalAutor<?= $apoio->id ?>" tabindex="-1" aria-labelledby="modalAutorLabel<?= $apoio->id ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="modalAutorLabel<?= $apoio->id ?>">
+                                                        <?= __('Autor Completo - Apoio #{0}', $apoio->id) ?>
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <?= nl2br(h($apoio->autor)) ?>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Fechar') ?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="texto-truncated" data-full-text="<?= h(json_encode($apoio->texto)) ?>">
+                                    <?= h(mb_substr($apoio->texto, 0, 300)) ?><?= mb_strlen($apoio->texto) > 300 ? '...' : '' ?>
+                                </div>
+                                <?php if (mb_strlen($apoio->texto) > 300): ?>
+                                    <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto" data-bs-toggle="modal" data-bs-target="#modalTexto<?= $apoio->id ?>">
+                                        <?= __('Ver texto completo') ?>
+                                    </button>
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="modalTexto<?= $apoio->id ?>" tabindex="-1" aria-labelledby="modalTextoLabel<?= $apoio->id ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="modalTextoLabel<?= $apoio->id ?>">
+                                                        <?= __('Texto Completo - Apoio #{0}', $apoio->id) ?>
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <?= nl2br(h($apoio->texto)) ?>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Fechar') ?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Apoios', 'action' => 'view', $apoio->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
                                 <?php if (!$identity || ($identity->role !== 'relator')): ?>

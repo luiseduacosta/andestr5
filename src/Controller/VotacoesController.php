@@ -462,7 +462,7 @@ class VotacoesController extends AppController
                 $votacao->tr = $tr;
                 $votacao->item_id = $item->id;
                 $votacao->item = $item->item;
-                $votacao->resultado = 'Aprovado';
+                $votacao->resultado = 'aprovada';
                 $votacao->votacao = $data['votacao'] ?? '';
                 $votacao->item_modificada = '';
                 $votacao->data = new \Cake\I18n\DateTime();
