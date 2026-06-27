@@ -49,7 +49,20 @@ class ItemsController extends AppController
      */
     public function view($id = null)
     {
-        $item = $this->Items->get($id, contain: ['Apoios', 'Votacoes']);
+        $identity = $this->Authentication->getIdentity();
+        $votacoesContain = ['sort' => ['Votacoes.data' => 'DESC', 'Votacoes.id' => 'DESC']];
+
+        if ($identity && $identity->role === 'relator') {
+            $userGrupo = (int)substr((string)$identity->username, 5);
+            $votacoesContain['queryBuilder'] = function ($query) use ($userGrupo) {
+                return $query->where(['Votacoes.grupo' => $userGrupo]);
+            };
+        }
+
+        $item = $this->Items->get($id, contain: [
+            'Apoios',
+            'Votacoes' => $votacoesContain,
+        ]);
         $this->Authorization->authorize($item);
         $this->set(compact('item'));
     }

@@ -21,10 +21,6 @@ class ItemPolicy
      */
     public function canView(IdentityInterface $user, Item $resource): bool
     {
-        if ($user->role === 'relator' && !empty($resource->item) && str_ends_with($resource->item, '99')) {
-            return (int)$resource->user_id === (int)$user->id;
-        }
-
         return true;
     }
 
@@ -41,11 +37,16 @@ class ItemPolicy
      */
     public function canEdit(IdentityInterface $user, Item $resource): bool
     {
-        if ($user->role === 'relator' && !empty($resource->item) && str_ends_with($resource->item, '99')) {
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        // Relator só edita itens que ele próprio criou
+        if ($user->role === 'relator') {
             return (int)$resource->user_id === (int)$user->id;
         }
 
-        return $user->role === 'admin' || $user->role === 'editor' || $user->role === 'relator';
+        return false;
     }
 
     /**
@@ -53,10 +54,15 @@ class ItemPolicy
      */
     public function canDelete(IdentityInterface $user, Item $resource): bool
     {
-        if ($user->role === 'relator' && !empty($resource->item) && str_ends_with($resource->item, '99')) {
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        // Relator só deleta itens que ele próprio criou
+        if ($user->role === 'relator') {
             return (int)$resource->user_id === (int)$user->id;
         }
 
-        return $user->role === 'admin' || $user->role === 'editor' || $user->role === 'relator';
+        return false;
     }
 }

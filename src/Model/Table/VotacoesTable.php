@@ -88,14 +88,6 @@ class VotacoesTable extends Table
             ->notEmptyString('tr');
 
         $validator
-            ->integer('tr_suprimida')
-            ->notEmptyString('tr_suprimida');
-
-        $validator
-            ->integer('tr_aprovada')
-            ->notEmptyString('tr_aprovada');
-
-        $validator
             ->integer('item_id')
             ->notEmptyString('item_id');
 
@@ -124,7 +116,7 @@ class VotacoesTable extends Table
         $validator
             ->scalar('item_modificada')
             ->requirePresence('item_modificada', 'create')
-            ->notEmptyString('item_modificada');
+            ->allowEmptyString('item_modificada');
 
         $validator
             ->dateTime('data')
@@ -132,10 +124,42 @@ class VotacoesTable extends Table
 
         $validator
             ->scalar('observacoes')
-            ->requirePresence('observacoes', 'create')
-            ->notEmptyString('observacoes');
+            ->allowEmptyString('observacoes');
 
         return $validator;
+    }
+
+    /**
+     * KISS: TR está suprimida ⇔ todos os itens rejeitados.
+     */
+    public function isTrSuprimida(int $tr, int $eventoId): bool
+    {
+        $votos = $this->find()
+            ->select(['resultado'])
+            ->distinct()
+            ->where(['tr' => $tr, 'evento_id' => $eventoId])
+            ->all();
+
+        return !$votos->isEmpty() && $votos->every(fn($v) => $v->resultado === 'Rejeitado');
+    }
+
+    /**
+     * KISS: TR aprovada sem modificações ⇔ todos aprovados E nenhum modificado.
+     */
+    public function isTrAprovada(int $tr, int $eventoId): bool
+    {
+        $votos = $this->find()
+            ->select(['resultado', 'item_modificada'])
+            ->where(['tr' => $tr, 'evento_id' => $eventoId])
+            ->all();
+
+        if ($votos->isEmpty()) {
+            return false;
+        }
+
+        return $votos->every(fn($v) =>
+            $v->resultado === 'Aprovado' && ($v->item_modificada === '' || $v->item_modificada === null)
+        );
     }
 
     /**

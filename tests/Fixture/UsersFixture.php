@@ -36,7 +36,7 @@ class UsersFixture extends TestFixture
             ],
             [
                 'id' => 3,
-                'username' => 'relator',
+                'username' => 'grupo1',
                 'password' => '$2y$10$xyz',
                 'role' => 'relator',
                 'created' => '2026-06-19 12:00:00',

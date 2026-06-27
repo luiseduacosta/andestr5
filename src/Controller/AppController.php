@@ -63,13 +63,28 @@ class AppController extends Controller
         parent::beforeFilter($event);
 
         $session = $this->request->getSession();
-        $selectedEventoId = $session->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
+        $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
 
-        if (!$selectedEventoId) {
-            $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
-            $lastEvento = $eventosTable->find()->order(['id' => 'DESC'])->first();
-            if ($lastEvento) {
-                $session->write('selected_evento_id', $lastEvento->id);
+        if ($identity && $identity->role === 'relator') {
+            // Relator usa o evento ativo definido pelo admin/editor, fallback ao último
+            $ativo = $eventosTable->find()->where(['ativo' => true])->first();
+            if ($ativo) {
+                $session->write('selected_evento_id', $ativo->id);
+            } elseif (!$session->read('selected_evento_id')) {
+                $lastEvento = $eventosTable->find()->order(['id' => 'DESC'])->first();
+                if ($lastEvento) {
+                    $session->write('selected_evento_id', $lastEvento->id);
+                }
+            }
+        } else {
+            // Admin/editor: mantém o evento da sessão, fallback para o último
+            $selectedEventoId = $session->read('selected_evento_id');
+            if (!$selectedEventoId) {
+                $lastEvento = $eventosTable->find()->order(['id' => 'DESC'])->first();
+                if ($lastEvento) {
+                    $session->write('selected_evento_id', $lastEvento->id);
+                }
             }
         }
     }

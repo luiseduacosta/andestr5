@@ -29,7 +29,15 @@ class VotacaoPolicy
      */
     public function canView(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'admin' || $user->role === 'editor' || (int)$user->id === (int)$resource->user_id;
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        if ($user->role === 'relator') {
+            return (int)$resource->grupo === (int)substr((string)$user->username, 5);
+        }
+
+        return false;
     }
 
     /**
@@ -67,6 +75,11 @@ class VotacaoPolicy
     }
 
     public function canVotarRestantes(IdentityInterface $user): bool
+    {
+        return $user->role === 'admin' || $user->role === 'relator';
+    }
+
+    public function canInserirItem(IdentityInterface $user): bool
     {
         return $user->role === 'admin' || $user->role === 'relator';
     }

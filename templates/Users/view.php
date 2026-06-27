@@ -62,8 +62,6 @@
                                 <td><?= h($votacao->evento_id) ?></td>
                                 <td><?= h($votacao->grupo) ?></td>
                                 <td><?= h($votacao->tr) ?></td>
-                                <td><?= h($votacao->tr_suprimida) ?></td>
-                                <td><?= h($votacao->tr_aprovada) ?></td>
                                 <td><?= h($votacao->item_id) ?></td>
                                 <td><?= h($votacao->item) ?></td>
                                 <td><?= h($votacao->resultado) ?></td>

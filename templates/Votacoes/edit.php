@@ -26,17 +26,15 @@
                 <?php
                     echo $this->Form->control('user_id', ['options' => $users, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('evento_id', ['options' => $eventos, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('grupo', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tr_suprimida', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tr_aprovada', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('item_id', ['options' => $items, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('item', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('votacao', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('item_modificada', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('data', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('observacoes', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('grupo', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Grupo') . '']]);
+                    echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('TR') . '']]);
+                    echo $this->Form->control('item_id', ['options' => $items, 'class' => 'form-select', 'label' => ['class' => 'form-label', 'text' => __('Item Id') . '']]);
+                    echo $this->Form->control('item', ['type' => 'text', 'class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Item') . '']]);
+                    echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Resultado') . '']]);
+                    echo $this->Form->control('votacao', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Votação') . '']]);
+                    echo $this->Form->control('item_modificada', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label', 'text' => __('Modificação/inclusão') . '']]);
+                    echo $this->Form->control('data', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Data') . '']]);
+                    echo $this->Form->control('observacoes', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label', 'text' => __('Observações') . '']]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-primary']) ?>

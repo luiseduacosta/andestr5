@@ -5,15 +5,17 @@
  */
 ?>
 <div class="card shadow-sm">
-
     <div class ="card-header">
         <h3 class="mb-0"><?= __('Items') ?></h3>
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
+            <?php $identity = $this->request->getAttribute('identity'); ?>
+            <?php if (!$identity || ($identity->role !== 'relator')): ?>
             <ul class="navbar navbar-nav ms-auto mt-lg-0">
                 <li class="nav-link">
                     <?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'btn btn-primary']) ?>
                 </li>
             </ul>
+            <?php endif; ?>
         </nav>
     </div>
 
@@ -58,7 +60,7 @@
                                     $buttonClass = 'btn btn-sm btn-success';
                                 } else {
                                     $buttonText = __('Sem votação');
-                                    $buttonLink = ['controller' => 'Votacoes', 'action' => 'add', '?' => ['item_id' => $item->id]];
+                                    $buttonLink = ['controller' => 'Items', 'action' => 'view', $item->id];
                                     $buttonClass = 'btn btn-sm btn-warning';
                                 }
                             } elseif ($identity->role === 'admin' || $identity->role === 'editor') {
@@ -79,8 +81,10 @@
                             <?= $this->Html->link($buttonText, $buttonLink, ['class' => $buttonClass]) ?>
                         <?php endif; ?>
                         <?= $this->Html->link(__('View'), ['action' => 'view', $item->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $item->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                            <?= $this->Html->link(__('Edit'), ['action' => 'edit', $item->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                            <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

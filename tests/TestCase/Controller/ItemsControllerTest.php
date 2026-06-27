@@ -98,8 +98,8 @@ class ItemsControllerTest extends TestCase
         $this->assertResponseContains('/items/view/5');
         $this->assertResponseNotContains('/items/view/4');
 
-        // Verify button for Item 2 (no vote by relator): says 'Sem votação' and links to /votacoes/add?item_id=2
-        $this->assertResponseContains('/votacoes/add?item_id=2');
+        // Verify button for Item 2 (no vote by relator): says 'Sem votação' and links to /items/view/2
+        $this->assertResponseContains('/items/view/2');
         $this->assertResponseContains('Sem votação');
 
         // Event 1: Item 1 has a vote by user 3 (relator).

@@ -47,4 +47,9 @@ class EventoPolicy
     {
         return $user->role === 'admin' || $user->role === 'editor';
     }
+
+    public function canAtivar(IdentityInterface $user, Evento $resource): bool
+    {
+        return $user->role === 'admin' || $user->role === 'editor';
+    }
 }

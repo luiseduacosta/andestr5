@@ -4,14 +4,18 @@
  * @var \App\Model\Entity\Item $item
  */
 ?>
+<?php $identity = $this->request->getAttribute('identity'); ?>
 <div class="card shadow-sm">
     <div class="card-header">
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
             <ul class="navbar navbar-nav ms-auto mt-lg-0">
-                <li class="nav-item"><?= $this->Html->link(__('Edit Item'), ['action' => 'edit', $item->id], ['class' => 'btn btn-primary w-100']) ?></li>
-                <li class="nav-item"><?= $this->Form->postLink(__('Delete Item'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('List Items'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
-                <li class="nav-item"><?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+                <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                    <li class="nav-item"><?= $this->Html->link(__('Edit Item'), ['action' => 'edit', $item->id], ['class' => 'btn btn-primary w-100']) ?></li>
+                    <li class="nav-item"><?= $this->Html->link(__('Edit Item'), ['action' => 'edit', $item->id], ['class' => 'btn btn-primary w-100']) ?></li>
+                    <li class="nav-item"><?= $this->Form->postLink(__('Delete Item'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+                    <li class="nav-item"><?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+                <?php endif; ?>
             </ul>
         </nav>
     </div>
@@ -35,7 +39,11 @@
             </div>
 
             <?php
-                $grupo = $item->apoio->gt_id ?? null;
+                $grupo = null;
+                $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+                if ($identity && $identity->role === 'relator') {
+                    $grupo = (int)substr((string)$identity->username, 5);
+                }
                 $tr = $item->tr;
             ?>
             <?php if ($grupo && $tr): ?>
@@ -45,7 +53,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-2">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card border-danger h-100">
                                 <div class="card-body text-center">
                                     <h6 class="card-title"><?= __('Fase 1 — Votação da TR') ?></h6>
@@ -54,7 +62,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card border-warning h-100">
                                 <div class="card-body text-center">
                                     <h6 class="card-title"><?= __('Fase 2 — Votar este Item') ?></h6>
@@ -63,12 +71,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card border-success h-100">
                                 <div class="card-body text-center">
                                     <h6 class="card-title"><?= __('Fase 3 — Aprovar Restantes') ?></h6>
                                     <p class="card-text small text-muted"><?= __('Voto afirmativo em bloco nos itens não discutidos da TR {0}.', $tr) ?></p>
                                     <?= $this->Html->link(__('Ir para Fase 3'), ['controller' => 'Votacoes', 'action' => 'votarRestantes', $grupo, $tr], ['class' => 'btn btn-outline-success btn-sm']) ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title"><?= __('Fase 4 — Inserir Novo Item') ?></h6>
+                                    <p class="card-text small text-muted"><?= __('Propor e votar um novo item para a TR {0} (código {0}.99).', $tr) ?></p>
+                                    <?= $this->Html->link(__('Ir para Fase 4'), ['controller' => 'Votacoes', 'action' => 'inserirItem', $grupo, $tr], ['class' => 'btn btn-outline-info btn-sm']) ?>
                                 </div>
                             </div>
                         </div>
@@ -88,8 +105,6 @@
                                 <th><?= __('Evento Id', 'Evento') ?></th>
                                 <th><?= __('Grupo') ?></th>
                                 <th><?= __('Tr', 'TR') ?></th>
-                                <th><?= __('Tr Suprimida', 'Suprimida') ?></th>
-                                <th><?= __('Tr Aprovada', 'Aprovada') ?></th>
                                 <th><?= __('Item Id', 'Id item') ?></th>
                                 <th><?= __('Item') ?></th>
                                 <th><?= __('Resultado') ?></th>
@@ -102,14 +117,15 @@
                         </thead>
                         <tbody>
                         <?php foreach ($item->votacoes as $votacao) : ?>
+                        <?php
+                            $canEditOrDeleteVotacao = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
+                        ?>
                         <tr>
                             <td><?= h($votacao->id) ?></td>
                             <td><?= h($votacao->user_id) ?></td>
                             <td><?= h($votacao->evento_id) ?></td>
                             <td><?= h($votacao->grupo) ?></td>
                             <td><?= h($votacao->tr) ?></td>
-                            <td><?= h($votacao->tr_suprimida) ?></td>
-                            <td><?= h($votacao->tr_aprovada) ?></td>
                             <td><?= h($votacao->item_id) ?></td>
                             <td><?= h($votacao->item) ?></td>
                             <td><?= h($votacao->resultado) ?></td>
@@ -119,8 +135,10 @@
                             <td><?= h($votacao->observacoes) ?></td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Votacoes', 'action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                                <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                                <?= $this->Form->postLink(__('Delete'), ['controller' => 'Votacoes', 'action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php if ($canEditOrDeleteVotacao) : ?>
+                                    <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'Votacoes', 'action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

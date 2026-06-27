@@ -42,7 +42,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         
         // Active event 2 by default. Relator has no vote records in Event 2.
@@ -102,7 +102,7 @@ class VotacoesControllerTest extends TestCase
         $user = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         $this->session(['Auth' => $user]);
 
@@ -123,7 +123,7 @@ class VotacoesControllerTest extends TestCase
         $user = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         $this->session([
             'Auth' => $user,
@@ -171,7 +171,7 @@ class VotacoesControllerTest extends TestCase
         $user = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         $this->session([
             'Auth' => $user,
@@ -216,7 +216,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
 
         // 1. Check dropdown filtering in Add action
@@ -265,7 +265,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
 
         // 1. Unselected TRs page load
@@ -306,7 +306,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
 
         // GET: Show TR items for voting
@@ -333,7 +333,7 @@ class VotacoesControllerTest extends TestCase
         // Verify records were created with tr_suprimida=1
         $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
         $rejected = $votacoesTable->find()
-            ->where(['tr' => 1, 'tr_suprimida' => 1, 'evento_id' => 1])
+            ->where(['tr' => 1, 'user_id' => 3, 'resultado' => 'Rejeitado'])
             ->all();
         $this->assertNotEmpty($rejected);
         foreach ($rejected as $v) {
@@ -370,7 +370,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
 
         // GET: Show item voting form
@@ -419,7 +419,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
 
         // GET: Show remaining items in TR 3 (only Item 3, which has no vote in evento 2)
@@ -484,7 +484,7 @@ class VotacoesControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         $this->session([
             'Auth' => $relator,
@@ -493,5 +493,13 @@ class VotacoesControllerTest extends TestCase
         $this->get('/votacoes/report?trs=1');
         $this->assertResponseOk();
         $this->assertResponseContains('Destaque de Minoria');
+    }
+
+    private function ativarEvento(int $id): void
+    {
+        \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos')
+            ->updateAll(['ativo' => false], ['1 = 1']);
+        \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos')
+            ->updateAll(['ativo' => true], ['id' => $id]);
     }
 }

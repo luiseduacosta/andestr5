@@ -36,6 +36,7 @@ CREATE TABLE `eventos` (
   `nome` varchar(25) NOT NULL,
   `data` varchar(50) NOT NULL,
   `local` varchar(25) NOT NULL,
+  `ativo` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -92,8 +93,6 @@ CREATE TABLE `votacoes` (
   `evento_id` int(11) NOT NULL,
   `grupo` int(11) NOT NULL,
   `tr` int(3) NOT NULL,
-  `tr_suprimida` int(2) NOT NULL DEFAULT 0,
-  `tr_aprovada` int(2) NOT NULL DEFAULT 0,
   `item_id` int(11) NOT NULL,
   `item` varchar(10) NOT NULL,
   `votacao` varchar(10) NOT NULL,
@@ -103,7 +102,7 @@ CREATE TABLE `votacoes` (
   `observacoes` text DEFAULT NULL,
   `destaque_minoria` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1262 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1263 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

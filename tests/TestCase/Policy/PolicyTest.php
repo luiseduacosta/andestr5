@@ -47,7 +47,7 @@ class PolicyTest extends TestCase
 
         // Index/view
         $this->assertTrue($policy->canIndex($admin));
-        $this->assertTrue($policy->canIndex($user1));
+        $this->assertFalse($policy->canIndex($user1));
         $this->assertTrue($policy->canView($admin, $targetUser));
         $this->assertTrue($policy->canView($user1, $targetUser));
 
@@ -137,6 +137,7 @@ class PolicyTest extends TestCase
         $relator = $this->getIdentity(['id' => 3, 'role' => 'relator']);
         $user1 = $this->getIdentity(['id' => 4, 'role' => 'user']);
         $item = new Item();
+        $item->user_id = 3; // relator owns this item
 
         $this->assertTrue($policy->canIndex($admin));
         $this->assertTrue($policy->canIndex($user1));

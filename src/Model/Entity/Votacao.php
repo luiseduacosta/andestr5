@@ -13,8 +13,6 @@ use Cake\ORM\Entity;
  * @property int $evento_id
  * @property int $grupo
  * @property int $tr
- * @property int $tr_suprimida
- * @property int $tr_aprovada
  * @property int $item_id
  * @property string $resultado
  * @property string $votacao
@@ -43,8 +41,6 @@ class Votacao extends Entity
         'evento_id' => true,
         'grupo' => true,
         'tr' => true,
-        'tr_suprimida' => true,
-        'tr_aprovada' => true,
         'item_id' => true,
         'item' => true,
         'resultado' => true,

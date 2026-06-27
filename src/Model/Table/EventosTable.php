@@ -41,7 +41,7 @@ class EventosTable extends Table
         parent::initialize($config);
 
         $this->setTable('eventos');
-        $this->setDisplayField('evento');
+        $this->setDisplayField('nome');
         $this->setPrimaryKey('id');
 
         $this->hasMany('Apoios', [

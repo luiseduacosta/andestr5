@@ -5,6 +5,8 @@
  */
 ?>
 <div class="row g-3">
+        <?php $identity = $this->request->getAttribute('identity'); ?>
+        <?php if (!$identity || ($identity->role !== 'relator')): ?>
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
             <ul class="navbar navbar-nav ms-auto mt-lg-0">
                 <li class="nav-item"><?= $this->Html->link(__('Edit Evento'), ['action' => 'edit', $evento->id], ['class' => 'btn btn-primary w-100']) ?></li>
@@ -13,6 +15,7 @@
                 <li class="nav-item"><?= $this->Html->link(__('New Evento'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
             </ul>
         </nav>
+        <?php endif; ?>
         <div class="card shadow-sm">
             <div class="card-header">
                 <h2 class="card-title"><?= h($evento->nome) ?></h2>
@@ -38,7 +41,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th><?= __('Id') ?></th>
-                                <th><?= __('Nomedoevento') ?></th>
+                                <th><?= __('Evento') ?></th>
                                 <th><?= __('Evento Id') ?></th>
                                 <th><?= __('Caderno') ?></th>
                                 <th><?= __('Numero Texto') ?></th>
@@ -61,12 +64,14 @@
                             <td><?= h($apoio->tema) ?></td>
                             <td><?= h($apoio->gt) ?></td>
                             <td><?= h($apoio->titulo) ?></td>
-                            <td><?= h($apoio->autor) ?></td>
-                            <td><?= h($apoio->texto) ?></td>
+                            <td><?= $apoio->autor ?></td>
+                            <td><?= $apoio->texto ?></td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Apoios', 'action' => 'view', $apoio->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                                <?= $this->Html->link(__('Edit'), ['controller' => 'Apoios', 'action' => 'edit', $apoio->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                                <?= $this->Form->postLink(__('Delete'), ['controller' => 'Apoios', 'action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                                    <?= $this->Html->link(__('Edit'), ['controller' => 'Apoios', 'action' => 'edit', $apoio->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'Apoios', 'action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -109,8 +114,6 @@
                             <td><?= h($votacao->evento_id) ?></td>
                             <td><?= h($votacao->grupo) ?></td>
                             <td><?= h($votacao->tr) ?></td>
-                            <td><?= h($votacao->tr_suprimida) ?></td>
-                            <td><?= h($votacao->tr_aprovada) ?></td>
                             <td><?= h($votacao->item_id) ?></td>
                             <td><?= h($votacao->item) ?></td>
                             <td><?= h($votacao->resultado) ?></td>
@@ -120,8 +123,10 @@
                             <td><?= h($votacao->observacoes) ?></td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Votacoes', 'action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                                <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                                <?= $this->Form->postLink(__('Delete'), ['controller' => 'Votacoes', 'action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                                    <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'Votacoes', 'action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

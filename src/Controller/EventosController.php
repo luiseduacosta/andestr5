@@ -104,7 +104,29 @@ class EventosController extends AppController
     }
 
     /**
-     * Select active event.
+     * Ativar evento para votação. Só admin/editor.
+     * Apenas um evento pode estar ativo.
+     *
+     * @param string|null $id Evento id.
+     * @return \Cake\Http\Response|null
+     */
+    public function ativar($id = null)
+    {
+        $this->request->allowMethod(['post']);
+
+        $evento = $this->Eventos->get($id);
+        $this->Authorization->authorize($evento);
+
+        $this->Eventos->updateAll(['ativo' => false], ['1 = 1']);
+        $evento->ativo = true;
+        $this->Eventos->save($evento);
+
+        $this->Flash->success(__('Evento "{0}" ativado para votação.', $evento->nome));
+        return $this->redirect($this->referer(['action' => 'index']));
+    }
+
+    /**
+     * Select active event (legacy session-based for admin/editor preview).
      *
      * @return \Cake\Http\Response|null
      */

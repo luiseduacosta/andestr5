@@ -24,16 +24,18 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
+                <?php $identity = $this->request->getAttribute('identity'); ?>
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><?= $this->Html->link('Eventos', ['controller' => 'Eventos', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Apoios', ['controller' => 'Apoios', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Items', ['controller' => 'Items', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Votacoes', ['controller' => 'Votacoes', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Relatório', ['controller' => 'Votacoes', 'action' => 'report'], ['class' => 'nav-link']) ?></li>
+                    <?php if (!$identity || ($identity->role !== 'relator')): ?>
                     <li class="nav-item"><?= $this->Html->link('Users', ['controller' => 'Users', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
+                    <?php endif; ?>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <?php $identity = $this->request->getAttribute('identity'); ?>
                     <?php if ($identity): ?>
                         <?php if ($identity->role === 'admin' || $identity->role === 'editor'): ?>
                             <?= $this->Form->create(null, [

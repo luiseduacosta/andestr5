@@ -91,6 +91,11 @@ class ApoiosTable extends Table
             ->allowEmptyString('gt');
 
         $validator
+            ->integer('gt_id')
+            ->requirePresence('gt_id', 'create')
+            ->notEmptyString('gt_id');
+
+        $validator
             ->scalar('titulo')
             ->maxLength('titulo', 256)
             ->requirePresence('titulo', 'create')

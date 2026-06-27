@@ -5,6 +5,8 @@
  */
 ?>
 <div class="container py-4">
+    <?php $identity = $this->request->getAttribute('identity'); ?>
+    <?php if (!$identity || ($identity->role !== 'relator')): ?>
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded mb-3">
         <ul class="navbar navbar-nav ms-auto mt-lg-0">
             <li class="nav-item">
@@ -12,6 +14,7 @@
             </li>
         </ul>
     </nav>
+    <?php endif; ?>
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-light">
@@ -40,8 +43,10 @@
                     <td><?= h($apoio->titulo) ?></td>
                     <td class="d-flex flex-wrap gap-2">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $apoio->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $apoio->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                            <?= $this->Html->link(__('Edit'), ['action' => 'edit', $apoio->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                            <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

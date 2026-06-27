@@ -13,7 +13,7 @@ class UserPolicy
      */
     public function canIndex(IdentityInterface $user): bool
     {
-        return true;
+        return $user->role === 'admin' || $user->role === 'editor';
     }
 
     /**

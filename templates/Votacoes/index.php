@@ -4,6 +4,10 @@
  * @var iterable<\App\Model\Entity\Votacao> $votacoes
  */
 ?>
+<?php
+    $identity = $this->request->getAttribute('identity');
+    $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+?>
 <div class="card shadow-sm">
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded mb-3">
@@ -24,8 +28,6 @@
                     <th><?= $this->Paginator->sort('evento_id') ?></th>
                     <th><?= $this->Paginator->sort('grupo') ?></th>
                     <th><?= $this->Paginator->sort('tr') ?></th>
-                    <th><?= $this->Paginator->sort('tr_suprimida') ?></th>
-                    <th><?= $this->Paginator->sort('tr_aprovada') ?></th>
                     <th><?= $this->Paginator->sort('item_id') ?></th>
                     <th><?= $this->Paginator->sort('item') ?></th>
                     <th><?= $this->Paginator->sort('resultado') ?></th>
@@ -36,14 +38,20 @@
             </thead>
             <tbody>
                 <?php foreach ($votacoes as $votacao): ?>
+                <?php
+                    $canManageVotacao = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
+                    $canViewUser = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
+                ?>
                 <tr>
                     <td><?= $this->Number->format($votacao->id) ?></td>
-                    <td><?= $votacao->hasValue('user') ? $this->Html->link($votacao->user->username, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : '' ?></td>
+                    <td>
+                        <?php if ($votacao->hasValue('user')) : ?>
+                            <?= $canViewUser ? $this->Html->link($votacao->user->username, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : h($votacao->user->username) ?>
+                        <?php endif; ?>
+                    </td>
                     <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
                     <td><?= $this->Number->format($votacao->grupo) ?></td>
                     <td><?= $this->Number->format($votacao->tr) ?></td>
-                    <td><?= $this->Number->format($votacao->tr_suprimida) ?></td>
-                    <td><?= $this->Number->format($votacao->tr_aprovada) ?></td>
                     <td><?= $votacao->hasValue('votacao_item') ? $this->Html->link($votacao->votacao_item->item, ['controller' => 'Items', 'action' => 'view', $votacao->votacao_item->id]) : '' ?></td>
                     <td><?= h($votacao->item) ?></td>
                     <td><?= h($votacao->resultado) ?></td>
@@ -51,8 +59,10 @@
                     <td><?= h($votacao->data) ?></td>
                     <td class="text-center">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php if ($canManageVotacao) : ?>
+                            <?= $this->Html->link(__('Edit'), ['action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                            <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

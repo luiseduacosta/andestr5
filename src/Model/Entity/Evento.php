@@ -13,6 +13,7 @@ use Cake\ORM\Entity;
  * @property string $nome
  * @property string $data
  * @property string $local
+ * @property bool $ativo
  *
  * @property \App\Model\Entity\Apoio[] $apoios
  * @property \App\Model\Entity\Votacao[] $votacoes
@@ -33,6 +34,7 @@ class Evento extends Entity
         'nome' => true,
         'data' => true,
         'local' => true,
+        'ativo' => true,
         'apoios' => true,
         'votacoes' => true,
     ];

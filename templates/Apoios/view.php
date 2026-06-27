@@ -7,10 +7,13 @@
 <div class="row g-3">
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
         <ul class="navbar navbar-nav ms-auto mt-lg-0">
-            <li class="nav-item"><?= $this->Html->link(__('Edit Apoio'), ['action' => 'edit', $apoio->id], ['class' => 'btn btn-primary w-100']) ?></li>
-            <li class="nav-item"><?= $this->Form->postLink(__('Delete Apoio'), ['action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+            <?php $identity = $this->request->getAttribute('identity'); ?>
+            <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                <li class="nav-item"><?= $this->Html->link(__('New Apoio'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+                <li class="nav-item"><?= $this->Html->link(__('Edit Apoio'), ['action' => 'edit', $apoio->id], ['class' => 'btn btn-primary w-100']) ?></li>
+                <li class="nav-item"><?= $this->Form->postLink(__('Delete Apoio'), ['action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+            <?php endif; ?>
             <li class="nav-item"><?= $this->Html->link(__('List Apoios'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
-            <li class="nav-item"><?= $this->Html->link(__('New Apoio'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
         </ul>
     </nav>
 
@@ -74,8 +77,10 @@
                             <td><?= $item->texto ?></td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Items', 'action' => 'view', $item->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                                <?= $this->Html->link(__('Edit'), ['controller' => 'Items', 'action' => 'edit', $item->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                                <?= $this->Form->postLink(__('Delete'), ['controller' => 'Items', 'action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                                    <?= $this->Html->link(__('Edit'), ['controller' => 'Items', 'action' => 'edit', $item->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                                    <?= $this->Form->postLink(__('Delete'), ['controller' => 'Items', 'action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
