@@ -19,7 +19,7 @@ class ApoiosController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Apoios->find()
-            ->contain(['Eventos']);
+            ->contain(['Eventos', 'Gts']);
         
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
         if ($selectedEventoId) {
@@ -27,7 +27,6 @@ class ApoiosController extends AppController
         }
 
         $apoios = $this->paginate($query);
-
         $this->set(compact('apoios'));
     }
 
@@ -40,7 +39,7 @@ class ApoiosController extends AppController
      */
     public function view($id = null)
     {
-        $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Items']);
+        $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Gts', 'Items']);
         $this->Authorization->authorize($apoio);
         $this->set(compact('apoio'));
     }
@@ -54,6 +53,10 @@ class ApoiosController extends AppController
     {
         $apoio = $this->Apoios->newEmptyEntity();
         $this->Authorization->authorize($apoio);
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        if ($selectedEventoId) {
+            $apoio->evento_id = $selectedEventoId;
+        }
         if ($this->request->is('post')) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
             $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
@@ -66,9 +69,11 @@ class ApoiosController extends AppController
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+            debug($apoio);
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
-        $this->set(compact('apoio', 'eventos'));
+        $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
+        $this->set(compact('apoio', 'eventos', 'gts'));
     }
 
     /**
@@ -96,7 +101,8 @@ class ApoiosController extends AppController
             $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
-        $this->set(compact('apoio', 'eventos'));
+        $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
+        $this->set(compact('apoio', 'eventos', 'gts'));
     }
 
     /**

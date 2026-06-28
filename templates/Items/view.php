@@ -12,7 +12,6 @@
                 <li class="nav-item"><?= $this->Html->link(__('List Items'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
                 <?php if (!$identity || ($identity->role !== 'relator')): ?>
                     <li class="nav-item"><?= $this->Html->link(__('Edit Item'), ['action' => 'edit', $item->id], ['class' => 'btn btn-primary w-100']) ?></li>
-                    <li class="nav-item"><?= $this->Html->link(__('Edit Item'), ['action' => 'edit', $item->id], ['class' => 'btn btn-primary w-100']) ?></li>
                     <li class="nav-item"><?= $this->Form->postLink(__('Delete Item'), ['action' => 'delete', $item->id], ['confirm' => __('Are you sure you want to delete # {0}?', $item->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
                     <li class="nav-item"><?= $this->Html->link(__('New Item'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
                 <?php endif; ?>

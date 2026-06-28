@@ -19,6 +19,7 @@ class EventosController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Eventos->find();
+        $query->order(['Eventos.ordem' => 'DESC']);
         $eventos = $this->paginate($query);
 
         $this->set(compact('eventos'));
@@ -137,10 +138,25 @@ class EventosController extends AppController
 
         $identity = $this->Authentication->getIdentity();
         if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
-            $eventoId = $this->request->getData('evento_id');
+            $eventoId = (int)$this->request->getData('evento_id');
+            
             if ($eventoId) {
-                $this->request->getSession()->write('selected_evento_id', (int)$eventoId);
-                $this->Flash->success(__('Active event changed.'));
+                // Deactivate all events first
+                $this->Eventos->updateAll(
+                    ['ativo' => false],
+                    ['ativo' => true]
+                );
+                
+                // Activate the selected event
+                $evento = $this->Eventos->get($eventoId);
+                $evento->ativo = true;
+                
+                if ($this->Eventos->save($evento)) {
+                    $this->request->getSession()->write('selected_evento_id', $eventoId);
+                    $this->Flash->success(__('Active event changed.'));
+                } else {
+                    $this->Flash->error(__('Error changing active event.'));
+                }
             }
         } else {
             $this->Flash->error(__('You are not authorized to change the active event.'));

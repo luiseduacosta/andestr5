@@ -51,6 +51,11 @@ class ApoiosTable extends Table
         $this->hasMany('Items', [
             'foreignKey' => 'apoio_id',
         ]);
+        $this->belongsTo('Gts', [
+            'foreignKey' => 'gt_id',
+            'joinType' => 'LEFT',
+            'propertyName' => 'gt_entity',
+        ]);
     }
 
     /**
@@ -92,8 +97,7 @@ class ApoiosTable extends Table
 
         $validator
             ->integer('gt_id')
-            ->requirePresence('gt_id', 'create')
-            ->notEmptyString('gt_id');
+            ->allowEmptyString('gt_id');
 
         $validator
             ->scalar('titulo')

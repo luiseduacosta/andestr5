@@ -24,19 +24,19 @@
             <thead class="table-light">
                 <tr>
                     <th><?= $this->Paginator->sort('id') ?></th>
-                    <th><?= $this->Paginator->sort('apoio_id') ?></th>
                     <th><?= $this->Paginator->sort('tr', 'TR') ?></th>
                     <th><?= $this->Paginator->sort('item') ?></th>
+                    <th><?= $this->Paginator->sort('texto') ?></th>
                     <th class="d-flex flex-wrap gap-2"><?= __('Actions') ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($items as $item): ?>
                 <tr>
-                    <td><?= $this->Number->format($item->id) ?></td>
-                    <td><?= $item->hasValue('apoio') ? $this->Html->link($item->apoio->caderno, ['controller' => 'Apoios', 'action' => 'view', $item->apoio->id]) : '' ?></td>
-                    <td><?= $this->Number->format($item->tr) ?></td>
+                    <td><?= $item->id ?></td>
+                    <td><?= $item->hasValue('apoio') ? $this->Html->link($item->apoio->numero_texto, ['controller' => 'Apoios', 'action' => 'view', $item->apoio->id]) : '' ?></td>
                     <td><?= h($item->item) ?></td>
+                    <td><?= h($item->texto) ?></td>
                     <td class="d-flex flex-wrap gap-2">
                         <?php
                         $identity = $this->request->getAttribute('identity');

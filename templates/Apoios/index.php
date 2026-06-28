@@ -20,13 +20,12 @@
             <thead class="table-light">
                 <tr>
                     <th><?= $this->Paginator->sort('id') ?></th>
-                    <th><?= $this->Paginator->sort('nomedoevento') ?></th>
-                    <th><?= $this->Paginator->sort('evento_id') ?></th>
-                    <th><?= $this->Paginator->sort('caderno') ?></th>
-                    <th><?= $this->Paginator->sort('numero_texto', 'Texto') ?></th>
-                    <th><?= $this->Paginator->sort('tema') ?></th>
+                    <th><?= $this->Paginator->sort('nomedoevento', 'Evento') ?></th>
+                    <th><?= $this->Paginator->sort('caderno', 'Caderno') ?></th>
+                    <th><?= $this->Paginator->sort('numero_texto', 'Número do Texto') ?></th>
+                    <th><?= $this->Paginator->sort('tema', 'Tema') ?></th>
                     <th><?= $this->Paginator->sort('gt', 'GT') ?></th>
-                    <th><?= $this->Paginator->sort('titulo') ?></th>
+                    <th><?= $this->Paginator->sort('titulo', 'Título') ?></th>
                     <th class="d-flex flex-wrap gap-2"><?= __('Actions') ?></th>
                 </tr>
             </thead>
@@ -34,12 +33,11 @@
                 <?php foreach ($apoios as $apoio): ?>
                 <tr>
                     <td><?= $this->Number->format($apoio->id) ?></td>
-                    <td><?= h($apoio->nomedoevento) ?></td>
                     <td><?= $apoio->hasValue('evento') ? $this->Html->link($apoio->evento->nome ?: __('Evento #{0}', $apoio->evento->id), ['controller' => 'Eventos', 'action' => 'view', $apoio->evento->id]) : '' ?></td>
                     <td><?= h($apoio->caderno) ?></td>
                     <td><?= $this->Number->format($apoio->numero_texto) ?></td>
                     <td><?= h($apoio->tema) ?></td>
-                    <td><?= h($apoio->gt) ?></td>
+                    <td><?= !empty($apoio->gt_entity) ? h($apoio->gt_entity->sigla) : __('N/A') ?></td>
                     <td><?= h($apoio->titulo) ?></td>
                     <td class="d-flex flex-wrap gap-2">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $apoio->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>

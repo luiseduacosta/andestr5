@@ -90,7 +90,7 @@ class ItemsController extends AppController
             $this->Flash->error(__('The item could not be saved. Please, try again.'));
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
-        $apoiosQuery = $this->Items->Apoios->find('list');
+        $apoiosQuery = $this->Items->Apoios->find('list', ['keyField' => 'id', 'valueField' => 'numero_texto']);
         if ($selectedEventoId) {
             $apoiosQuery->where(['Apoios.evento_id' => $selectedEventoId]);
         }
