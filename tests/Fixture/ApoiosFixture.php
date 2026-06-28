@@ -44,6 +44,32 @@ class ApoiosFixture extends TestFixture
                 'autor' => 'Autor 2',
                 'texto' => 'Texto 2',
             ],
+            [
+                'id' => 3,
+                'nomedoevento' => 'Evento 3',
+                'evento_id' => 3,
+                'caderno' => 'Anexo',
+                'numero_texto' => 3,
+                'tema' => 'III',
+                'gt' => 'GT 3',
+                'gt_id' => 3,
+                'titulo' => '&Atilde;&sup3;timo',
+                'autor' => '<p>Contribui&ccedil;&atilde;o do(a)s professore(a)s Alexandre Freitas; Renato Fonseca; Carolina Em&Atilde;&shy;lia da Silva - Diretoria e Conselho de Representantes da ADOPEAD - SSind</p>',
+                'texto' => 'Texto &Atilde;&ordm;nico',
+            ],
+            [
+                'id' => 4,
+                'nomedoevento' => 'Evento 4',
+                'evento_id' => 4,
+                'caderno' => 'Principal',
+                'numero_texto' => 4,
+                'tema' => 'IV',
+                'gt' => 'GT 4',
+                'gt_id' => 4,
+                'titulo' => 'Ã‰ isso',
+                'autor' => 'Autor 4',
+                'texto' => 'â€œprogramas de financiamento estudantilâ€' . "\xc2\x9d" . ' como PROUNI e FIES. NÃƒO.',
+            ],
         ];
         parent::init();
     }

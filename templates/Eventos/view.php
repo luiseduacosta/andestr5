@@ -3,6 +3,27 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Evento $evento
  */
+
+/**
+ * Fix mojibake encoding issues (UTF-8 text stored as LATIN-1 or HTML entities)
+ */
+function fixEncoding($text) {
+    if (empty($text)) {
+        return $text;
+    }    
+    // First, decode HTML entities to actual characters
+    $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // Ensure string is valid UTF-8
+    $decoded = mb_convert_encoding($decoded, 'UTF-8', 'UTF-8');
+
+    // Target double-encoded UTF-8 sequences (using CP1252 and /u flag)
+    $pattern = '/[\x{00C2}-\x{00DF}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]|[\x{00E0}-\x{00EF}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]{2}|[\x{00F0}-\x{00F4}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]{3}/u';
+    
+    return preg_replace_callback($pattern, function($matches) {
+        return mb_convert_encoding($matches[0], 'Windows-1252', 'UTF-8');
+    }, $decoded);
+}
 ?>
 <div class="row g-3">
         <?php $identity = $this->request->getAttribute('identity'); ?>
@@ -42,7 +63,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th><?= __('Id') ?></th>
-                                <th><?= __('Numero Texto') ?></th>
+                                <th><?= __('Numero') ?></th>
                                 <th><?= __('Titulo') ?></th>
                                 <th><?= __('Autor') ?></th>
                                 <th><?= __('Texto') ?></th>
@@ -57,9 +78,9 @@
                             <td><?= h($apoio->titulo) ?></td>
                             <td>
                                 <div class="autor-truncated">
-                                    <?= h(mb_substr($apoio->autor, 0, 300)) ?><?= mb_strlen($apoio->autor) > 300 ? '...' : '' ?>
+                                    <?= mb_substr(fixEncoding($apoio->autor), 0, 300) ?><?= mb_strlen(fixEncoding($apoio->autor)) > 300 ? '...' : '' ?>
                                 </div>
-                                <?php if (mb_strlen($apoio->autor) > 300): ?>
+                                <?php if (mb_strlen(fixEncoding($apoio->autor)) > 300): ?>
                                     <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto" data-bs-toggle="modal" data-bs-target="#modalAutor<?= $apoio->id ?>">
                                         <?= __('Ver autor completo') ?>
                                     </button>
@@ -74,7 +95,7 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <?= nl2br(h($apoio->autor)) ?>
+                                                    <?= nl2br(h(fixEncoding($apoio->autor))) ?>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Fechar') ?></button>
@@ -85,10 +106,10 @@
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <div class="texto-truncated" data-full-text="<?= h(json_encode($apoio->texto)) ?>">
-                                    <?= h(mb_substr($apoio->texto, 0, 300)) ?><?= mb_strlen($apoio->texto) > 300 ? '...' : '' ?>
+                                <div class="texto-truncated" data-full-text="<?= h(json_encode(fixEncoding($apoio->texto))) ?>">
+                                    <?= mb_substr(fixEncoding($apoio->texto), 0, 300) ?><?= mb_strlen(fixEncoding($apoio->texto)) > 300 ? '...' : '' ?>
                                 </div>
-                                <?php if (mb_strlen($apoio->texto) > 300): ?>
+                                <?php if (mb_strlen(fixEncoding($apoio->texto)) > 300): ?>
                                     <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto" data-bs-toggle="modal" data-bs-target="#modalTexto<?= $apoio->id ?>">
                                         <?= __('Ver texto completo') ?>
                                     </button>
@@ -103,7 +124,7 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <?= nl2br(h($apoio->texto)) ?>
+                                                    <?= nl2br(h(fixEncoding($apoio->texto))) ?>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Fechar') ?></button>
@@ -141,13 +162,11 @@
                                 <th><?= __('Evento Id') ?></th>
                                 <th><?= __('Grupo') ?></th>
                                 <th><?= __('Tr') ?></th>
-                                <th><?= __('Tr Suprimida') ?></th>
-                                <th><?= __('Tr Aprovada') ?></th>
                                 <th><?= __('Item Id') ?></th>
                                 <th><?= __('Item') ?></th>
                                 <th><?= __('Resultado') ?></th>
                                 <th><?= __('Votacao') ?></th>
-                                <th><?= __('Item Modificada') ?></th>
+                                <th><?= __('Modificada') ?></th>
                                 <th><?= __('Data') ?></th>
                                 <th><?= __('Observacoes') ?></th>
                                 <th class="d-flex flex-wrap gap-2"><?= __('Actions') ?></th>

@@ -3,6 +3,26 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Apoio $apoio
  */
+/**
+ * Fix mojibake encoding issues (UTF-8 text stored as LATIN-1 or HTML entities)
+ */
+function fixEncoding($text) {
+    if (empty($text)) {
+        return $text;
+    }
+    // First, decode HTML entities to actual characters
+    $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // Ensure string is valid UTF-8
+    $decoded = mb_convert_encoding($decoded, 'UTF-8', 'UTF-8');
+
+    // Target double-encoded UTF-8 sequences (using CP1252 and /u flag)
+    $pattern = '/[\x{00C2}-\x{00DF}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]|[\x{00E0}-\x{00EF}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]{2}|[\x{00F0}-\x{00F4}][\x{0080}-\x{00BF}€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]{3}/u';
+    
+    return preg_replace_callback($pattern, function($matches) {
+        return mb_convert_encoding($matches[0], 'Windows-1252', 'UTF-8');
+    }, $decoded);
+}
 ?>
 <div class="row g-3">
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
@@ -41,13 +61,13 @@
             <div class="text">
                 <strong><?= __('Autor') ?></strong>
                 <blockquote>
-                    <?= $this->Text->autoParagraph($apoio->autor); ?>
+                    <?= $this->Text->autoParagraph(fixEncoding($apoio->autor)); ?>
                 </blockquote>
             </div>
             <div class="text">
                 <strong><?= __('Texto') ?></strong>
                 <blockquote>
-                    <?= $this->Text->autoParagraph($apoio->texto); ?>
+                    <?= $this->Text->autoParagraph(fixEncoding($apoio->texto)); ?>
                 </blockquote>
             </div>
             <div class="card mt-4">
