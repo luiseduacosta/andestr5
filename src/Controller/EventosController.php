@@ -19,7 +19,7 @@ class EventosController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Eventos->find();
-        $query->order(['Eventos.ordem' => 'DESC']);
+        $query->orderBy(['Eventos.ordem' => 'DESC']);
         $eventos = $this->paginate($query);
 
         $this->set(compact('eventos'));
@@ -34,7 +34,7 @@ class EventosController extends AppController
      */
     public function view($id = null)
     {
-        $evento = $this->Eventos->get($id, contain: ['Apoios' => ['Items' => ['Votacoes']]]);
+        $evento = $this->Eventos->get($id, contain: ['Apoios' => ['Items']]);
         $this->Authorization->authorize($evento);
         $this->set(compact('evento'));
     }
@@ -138,19 +138,19 @@ class EventosController extends AppController
 
         $identity = $this->Authentication->getIdentity();
         if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
-            $eventoId = (int)$this->request->getData('evento_id');
-            
+            $eventoId = (int) $this->request->getData('evento_id');
+
             if ($eventoId) {
                 // Deactivate all events first
                 $this->Eventos->updateAll(
                     ['ativo' => false],
                     ['ativo' => true]
                 );
-                
+
                 // Activate the selected event
                 $evento = $this->Eventos->get($eventoId);
                 $evento->ativo = true;
-                
+
                 if ($this->Eventos->save($evento)) {
                     $this->request->getSession()->write('selected_evento_id', $eventoId);
                     $this->Flash->success(__('Active event changed.'));

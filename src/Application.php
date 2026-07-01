@@ -133,6 +133,15 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 'password' => 'password',
             ],
             'loginUrl' => ['controller' => 'Users', 'action' => 'login'],
+            'urlChecker' => 'Authentication.CakeRouter',
+            'identifier' => [
+                'Authentication.Password' => [
+                    'fields' => [
+                        'username' => 'username',
+                        'password' => 'password',
+                    ],
+                ],
+            ],
         ]);
 
         return $authenticationService;
