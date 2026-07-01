@@ -68,7 +68,14 @@ define('TMP', ROOT . DS . 'tmp' . DS);
 /*
  * Path to the logs directory.
  */
-define('LOGS', ROOT . DS . 'logs' . DS);
+$logsPath = ROOT . DS . 'logs';
+if (is_link($logsPath)) {
+    $target = readlink($logsPath);
+    if ($target && !is_dir($target)) {
+        @mkdir($target, 0777, true);
+    }
+}
+define('LOGS', $logsPath . DS);
 
 /*
  * Path to the cache files directory. It can be shared between hosts in a multi-server setup.

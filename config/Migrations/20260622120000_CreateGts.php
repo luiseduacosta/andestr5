@@ -1,9 +1,8 @@
 <?php
 declare(strict_types=1);
 
-use Migrations\AbstractMigration;
-
-class CreateGts extends AbstractMigration
+use Migrations\BaseMigration;
+class CreateGts extends BaseMigration
 {
     /**
      * Change Method.
