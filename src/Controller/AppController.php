@@ -74,7 +74,7 @@ class AppController extends Controller
             $session->write('selected_evento_id', $ativo->id);
         } elseif (!$session->check('selected_evento_id')) {
             // Fallback: if no active event and no session, use last event
-            $lastEvento = $eventosTable->find()->order(['id' => 'DESC'])->first();
+            $lastEvento = $eventosTable->find()->order(['ordem' => 'DESC'])->first();
             if ($lastEvento) {
                 $session->write('selected_evento_id', $lastEvento->id);
             }
@@ -109,7 +109,7 @@ class AppController extends Controller
         $identity = $this->components()->has('Authentication') ? $this->Authentication->getIdentity() : $this->request->getAttribute('identity');
         
         if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
-            $allEventos = $eventosTable->find('list', keyField: 'id', valueField: 'nome')->toArray();
+            $allEventos = $eventosTable->find('list', keyField: 'id', valueField: 'nome', order: ['ordem' => 'ASC'])->toArray();
         }
 
         $this->set(compact('selectedEvento', 'allEventos'));

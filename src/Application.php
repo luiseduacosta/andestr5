@@ -122,10 +122,23 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $authenticationService = new AuthenticationService([
             'unauthenticatedRedirect' => ['controller' => 'Users', 'action' => 'login'],
             'queryParam' => 'redirect',
+            'identifiers' => [
+                'Authentication.Password' => [
+                    'fields' => [
+                        'username' => 'username',
+                        'password' => 'password',
+                    ],
+                    'resolver' => [
+                        'className' => 'Authentication.Orm',
+                        'userModel' => 'Users',
+                    ],
+                ],
+            ],
         ]);
 
         // Load authenticators, session should be first
         $authenticationService->loadAuthenticator('Authentication.Session');
+        
         // Configure form data check to pick login credentials
         $authenticationService->loadAuthenticator('Authentication.Form', [
             'fields' => [
@@ -133,15 +146,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 'password' => 'password',
             ],
             'loginUrl' => ['controller' => 'Users', 'action' => 'login'],
-            'urlChecker' => 'Authentication.CakeRouter',
-            'identifier' => [
-                'Authentication.Password' => [
-                    'fields' => [
-                        'username' => 'username',
-                        'password' => 'password',
-                    ],
-                ],
-            ],
+            'urlChecker' => \Authentication\UrlChecker\DefaultUrlChecker::class,
         ]);
 
         return $authenticationService;
