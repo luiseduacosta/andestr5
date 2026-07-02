@@ -59,6 +59,21 @@ class ApoiosControllerTest extends TestCase
         $this->assertResponseOk();
         $this->assertResponseContains('Apoio Evento 1');
         $this->assertResponseNotContains('Apoio Evento 2');
+
+        // Search for 'Autor 1' matching record 'Apoio Evento 1'
+        $this->get('/apoios?search=Autor+1');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoio Evento 1');
+
+        // Search for 'Texto 1' matching record 'Apoio Evento 1'
+        $this->get('/apoios?search=Texto+1');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoio Evento 1');
+
+        // Search for 'NonExistent' not matching any records
+        $this->get('/apoios?search=NonExistent');
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('Apoio Evento 1');
     }
 
     /**

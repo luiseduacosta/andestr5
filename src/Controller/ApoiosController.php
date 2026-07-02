@@ -26,6 +26,16 @@ class ApoiosController extends AppController
             $query->where(['Apoios.evento_id' => $selectedEventoId]);
         }
 
+        $search = $this->request->getQuery('search');
+        if (!empty($search)) {
+            $query->where([
+                'OR' => [
+                    'Apoios.autor LIKE' => '%' . $search . '%',
+                    'Apoios.texto LIKE' => '%' . $search . '%',
+                ]
+            ]);
+        }
+
         $apoios = $this->paginate($query);
         $this->set(compact('apoios'));
     }

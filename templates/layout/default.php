@@ -12,7 +12,49 @@
     <?= $this->Html->meta('icon') ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <?= $this->Html->css('app') ?>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <!-- Custom styles to ensure EasyMDE toolbar visibility -->
+    <style>
+        /* Ensure the EasyMDE wrapper and toolbar are visible */
+        .EasyMDEContainer {
+            display: block !important;
+            width: 100%;
+        }
+
+        .EasyMDEContainer .editor-toolbar {
+            background-color: #f8f9fa !important;
+            border: 1px solid #ced4da !important;
+            border-bottom: none !important;
+            padding: 8px !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+
+        .EasyMDEContainer .editor-toolbar button {
+            color: #333333 !important;
+            background-color: transparent !important;
+            border: none !important;
+        }
+
+        .EasyMDEContainer .editor-toolbar button:hover {
+            background-color: #e9ecef !important;
+        }
+
+        .EasyMDEContainer .editor-toolbar .separator {
+            border-left: 1px solid #dee2e6 !important;
+        }
+
+        .EasyMDEContainer .CodeMirror {
+            border: 1px solid #ced4da !important;
+        }
+
+        /* Fix for FontAwesome icons if not loading */
+        .editor-toolbar i {
+            font-family: FontAwesome, sans-serif !important;
+            font-style: normal !important;
+        }
+    </style>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
 </head>

@@ -6,15 +6,22 @@
 ?>
 <div class="container py-4">
     <?php $identity = $this->request->getAttribute('identity'); ?>
-    <?php if (!$identity || ($identity->role !== 'relator')): ?>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded mb-3">
-        <ul class="navbar navbar-nav ms-auto mt-lg-0">
-            <li class="nav-item">
-                <?= $this->Html->link(__('New Apoio'), ['action' => 'add'], ['class' => 'btn btn-primary']) ?>
-            </li>
-        </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light p-3 rounded mb-3">
+        <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form class="d-flex flex-grow-1 me-lg-3" method="get" action="" style="max-width: 500px;">
+                <input class="form-control me-2" type="search" name="search" placeholder="<?= __('Search by author or text...') ?>" aria-label="Search" value="<?= h($this->request->getQuery('search')) ?>">
+                <button class="btn btn-outline-primary" type="submit"><?= __('Search') ?></button>
+                <?php if ($this->request->getQuery('search')): ?>
+                    <?= $this->Html->link(__('Clear'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary ms-2']) ?>
+                <?php endif; ?>
+            </form>
+            <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                <div>
+                    <?= $this->Html->link(__('New Apoio'), ['action' => 'add'], ['class' => 'btn btn-primary']) ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </nav>
-    <?php endif; ?>
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-light">
