@@ -20,11 +20,15 @@
             <div class="card-body">
             <h3><?= h($votacao->item) ?></h3>
             <dl class="row mb-0">
+                <dt class="col-sm-4 text-secondary"><?= __('Id') ?></dt>
+                <dd class="col-sm-8"><?= $this->Number->format($votacao->id) ?></dd>
+                <dt class="col-sm-4 text-secondary"><?= __('TR') ?></dt>
+                <dd class="col-sm-8"><?= $this->Html->link($this->Number->format($votacao->tr), ['controller' => 'Apoios', 'action' => 'viewtr', '?' => ['evento_id' => $votacao->evento->id, 'tr' => $votacao->tr]]) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Usuário') ?></dt>
                 <?php if ($identity && $identity->role === 'relator') : ?>
-                    <dd class="col-sm-8"><?= $votacao->hasValue('user') ? $votacao->user->id : '' ?></dd>
+                    <dd class="col-sm-8"><?= $votacao->hasValue('user') ? $votacao->user->username : '' ?></dd>
                 <?php else: ?>    
-                    <dd class="col-sm-8"><?= $votacao->hasValue('user') ? $this->Html->link($votacao->user->id, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : '' ?></dd>
+                    <dd class="col-sm-8"><?= $votacao->hasValue('user') ? $this->Html->link($votacao->user->username, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : '' ?></dd>
                 <?php endif; ?>
                 <dt class="col-sm-4 text-secondary"><?= __('Evento') ?></dt>
                 <dd class="col-sm-8"><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></dd>
@@ -34,14 +38,10 @@
                 <dd class="col-sm-8"><?= h($votacao->resultado) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Votação') ?></dt>
                 <dd class="col-sm-8"><?= h($votacao->votacao) ?></dd>
-                <dt class="col-sm-4 text-secondary"><?= __('Id') ?></dt>
-                <dd class="col-sm-8"><?= $this->Number->format($votacao->id) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Grupo') ?></dt>
                 <dd class="col-sm-8"><?= $this->Number->format($votacao->grupo) ?></dd>
-                <dt class="col-sm-4 text-secondary"><?= __('TR') ?></dt>
-                <dd class="col-sm-8"><?= $this->Number->format($votacao->tr) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Data') ?></dt>
-                <dd class="col-sm-8"><?= h($votacao->data) ?></dd>
+                <dd class="col-sm-8"><?= $votacao->data ? h(date('d/m/Y', strtotime((string)$votacao->data))) : '' ?></dd>
             </dl>
             <?php if (!empty($votacao->item_modificada)) : ?>
                 <div class="text">

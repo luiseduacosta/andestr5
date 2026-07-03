@@ -51,7 +51,7 @@
                     </td>
                     <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
                     <td><?= $this->Number->format($votacao->grupo) ?></td>
-                    <td><?= $this->Number->format($votacao->tr) ?></td>
+                    <td><?= $this->Html->link($votacao->tr, ['controller' => 'Apoios', 'action' => 'viewtr', '?' => ['evento_id' => $votacao->evento->id, 'tr' => $this->Number->format($votacao->tr)]]) ?></td>
                     <td><?= $votacao->hasValue('votacao_item') ? $this->Html->link($votacao->votacao_item->item, ['controller' => 'Items', 'action' => 'view', $votacao->votacao_item->id]) : '' ?></td>
                     <td><?= h($votacao->item) ?></td>
                     <td><?= h($votacao->resultado) ?></td>
