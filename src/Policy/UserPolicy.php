@@ -47,4 +47,12 @@ class UserPolicy
     {
         return $user->role === 'admin' || $user->role === 'editor';
     }
+
+    /**
+     * Check if the user can impersonate another user (admin only).
+     */
+    public function canImpersonate(IdentityInterface $user, User $resource): bool
+    {
+        return $user->role === 'admin';
+    }
 }

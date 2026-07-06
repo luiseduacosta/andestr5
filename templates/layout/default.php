@@ -117,6 +117,23 @@
 
     <main class="py-4 py-lg-5">
         <div class="container">
+            <?php
+                $session = $this->request->getSession();
+                $impersonatedBy = $session->read('impersonated_by');
+            ?>
+            <?php if ($impersonatedBy): ?>
+                <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
+                    <span>
+                        <i class="fa fa-exclamation-triangle me-2"></i>
+                        <?= __('You are currently impersonating another user.') ?>
+                    </span>
+                    <?= $this->Html->link(
+                        __('Stop Impersonating'),
+                        ['controller' => 'Users', 'action' => 'stopImpersonate'],
+                        ['class' => 'btn btn-warning btn-sm fw-semibold']
+                    ) ?>
+                </div>
+            <?php endif; ?>
             <?= $this->Flash->render() ?>
             <?= $this->fetch('content') ?>
         </div>

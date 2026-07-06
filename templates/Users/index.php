@@ -3,6 +3,8 @@
  * @var \App\View\AppView $this
  * @var iterable<\App\Model\Entity\User> $users
  */
+$identity = $this->request->getAttribute('identity');
+$isAdmin = $identity && $identity->role === 'admin';
 ?>
 <div class="card shadow-sm">
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded mb-3">
@@ -35,6 +37,13 @@
                         <?= $this->Html->link(__('View'), ['action' => 'view', $user->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
                         <?= $this->Html->link(__('Edit'), ['action' => 'edit', $user->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
                         <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $user->id], ['confirm' => __('Are you sure you want to delete # {0}?', $user->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php if ($isAdmin && (int)$identity->id !== (int)$user->id): ?>
+                            <?= $this->Form->postLink(
+                                __('Impersonate'),
+                                ['action' => 'impersonate', $user->id],
+                                ['confirm' => __('Are you sure you want to impersonate {0}?', h($user->username)), 'class' => 'btn btn-sm btn-outline-warning']
+                            ) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

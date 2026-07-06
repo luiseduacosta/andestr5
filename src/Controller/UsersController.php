@@ -31,6 +31,7 @@ class UsersController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $result = $this->Authentication->getResult();
+
         if ($result && $result->isValid()) {
             $redirect = $this->request->getQuery('redirect', [
                 'controller' => 'Eventos',
@@ -149,6 +150,63 @@ class UsersController extends AppController
         } else {
             $this->Flash->error(__('The user could not be deleted. Please, try again.'));
         }
+
+        return $this->redirect(['action' => 'index']);
+    }
+
+    /**
+     * Impersonate method – allows an admin to switch to a different user identity.
+     *
+     * The current (admin) user ID is stored in the session so it can be restored later.
+     *
+     * @param string|null $id Target user id.
+     * @return \Cake\Http\Response|null Redirects on success, renders error otherwise.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function impersonate($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        $targetUser = $this->Users->get($id);
+        $this->Authorization->authorize($targetUser, 'impersonate');
+
+        $session = $this->request->getSession();
+        $identity = $this->Authentication->getIdentity();
+
+        // Store the real admin user ID so we can switch back later
+        $session->write('impersonated_by', $identity->id);
+
+        // Replace the current session identity with the target user
+        $this->Authentication->setIdentity($targetUser->toArray());
+
+        $this->Flash->success(__('You are now impersonating {0}.', h($targetUser->username)));
+
+        return $this->redirect(['controller' => 'Eventos', 'action' => 'index']);
+    }
+
+    /**
+     * Stop impersonating and restore the original admin identity.
+     *
+     * @return \Cake\Http\Response|null Redirects to Users index.
+     */
+    public function stopImpersonate()
+    {
+        $this->Authorization->skipAuthorization();
+        $session = $this->request->getSession();
+        $originalAdminId = $session->read('impersonated_by');
+
+        if (!$originalAdminId) {
+            $this->Flash->error(__('No impersonation session found.'));
+
+            return $this->redirect(['action' => 'index']);
+        }
+
+        $adminUser = $this->Users->get($originalAdminId);
+
+        // Restore the original admin identity
+        $this->Authentication->setIdentity($adminUser->toArray());
+        $session->delete('impersonated_by');
+
+        $this->Flash->success(__('Impersonation ended. You are now logged in as {0}.', h($adminUser->username)));
 
         return $this->redirect(['action' => 'index']);
     }
