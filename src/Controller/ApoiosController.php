@@ -54,6 +54,25 @@ class ApoiosController extends AppController
         $this->set(compact('apoio'));
     }
 
+    public function viewtr($tr = null)
+    {
+        $this->Authorization->skipAuthorization();
+        $eventoId = $this->request->getQuery('evento_id');
+        if (empty($eventoId)) {
+            throw new \Cake\Datasource\Exception\RecordNotFoundException(__('Evento não especificado'));
+        }
+        $tr = $this->request->getQuery('tr');
+        if (empty($tr)) {
+            throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não especificado'));
+        }
+
+        $apoio = $this->Apoios->find()->contain(['Eventos', 'Items'])->where(['Apoios.numero_texto' => $tr, 'Apoios.evento_id' => $eventoId])->first();
+        if (!$apoio) {
+            throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não encontrado'));
+        }
+        $this->set(compact('apoio'));
+    }
+
     /**
      * Add method
      *
