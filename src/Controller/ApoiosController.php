@@ -49,8 +49,8 @@ class ApoiosController extends AppController
      */
     public function view($id = null)
     {
-        $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Gts', 'Items']);
-        $this->Authorization->authorize($apoio);
+        $this->Authorization->skipAuthorization();
+        $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Gts', 'Items' => ['sort' => ['Items.item' => 'ASC']]]);
         $this->set(compact('apoio'));
     }
 

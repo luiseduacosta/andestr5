@@ -97,8 +97,12 @@ class ItemsController extends AppController
      */
     public function view($id = null)
     {
+        $this->Authorization->skipAuthorization();
         $identity = $this->Authentication->getIdentity();
-        $votacoesContain = ['sort' => ['Votacoes.data' => 'DESC', 'Votacoes.id' => 'DESC']];
+        $votacoesContain = [
+            'Users',
+            'Eventos',
+            'sort' => ['Votacoes.data' => 'DESC', 'Votacoes.id' => 'DESC']];
 
         if ($identity && $identity->role === 'relator') {
             $userGrupo = (int)substr((string)$identity->username, 5);

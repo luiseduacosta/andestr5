@@ -22,10 +22,10 @@
             <fieldset>
                 <legend><?= __('Edit Item') ?></legend>
                 <?php
-                    echo $this->Form->control('apoio_id', ['options' => $apoios, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('item', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('texto', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('apoio_id', ['options' => $apoios, 'class' => 'form-select', 'label' => ['text' => 'Apoio', 'class' => 'form-label']]);
+                    echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['text' => 'TR', 'class' => 'form-label']]);
+                    echo $this->Form->control('item', ['class' => 'form-control', 'label' => ['text' => 'Item', 'class' => 'form-label']]);
+                    echo $this->Form->control('texto', ['class' => 'form-control markdown-editor', 'label' => ['text' => 'Texto', 'class' => 'form-label']]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-primary']) ?>

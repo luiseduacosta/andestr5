@@ -69,14 +69,14 @@
                     $canViewUser = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
                 ?>
                 <tr>
-                    <td><?= $this->Number->format($votacao->id) ?></td>
+                    <td><?= $votacao->id ?></td>
                     <td>
                         <?php if ($votacao->hasValue('user')) : ?>
                             <?= $canViewUser ? $this->Html->link($votacao->user->username, ['controller' => 'Users', 'action' => 'view', $votacao->user->id]) : h($votacao->user->username) ?>
                         <?php endif; ?>
                     </td>
                     <td><?= $votacao->hasValue('evento') ? $this->Html->link($votacao->evento->nome ?: __('Evento #{0}', $votacao->evento->id), ['controller' => 'Eventos', 'action' => 'view', $votacao->evento->id]) : '' ?></td>
-                    <td><?= $this->Number->format($votacao->grupo) ?></td>
+                    <td><?= $votacao->grupo ?></td>
                     <td><?= $this->Html->link($votacao->tr, ['controller' => 'Apoios', 'action' => 'viewtr', '?' => ['evento_id' => $votacao->evento->id, 'tr' => $this->Number->format($votacao->tr)]]) ?></td>
                     <td><?= $votacao->hasValue('votacao_item') ? $this->Html->link($votacao->votacao_item->item, ['controller' => 'Items', 'action' => 'view', $votacao->votacao_item->id]) : '' ?></td>
                     <td><?= h($votacao->resultado) ?></td>

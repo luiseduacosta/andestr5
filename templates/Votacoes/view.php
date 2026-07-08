@@ -31,7 +31,7 @@
             <h3><?= h($votacao->item) ?></h3>
             <dl class="row mb-0">
                 <dt class="col-sm-4 text-secondary"><?= __('Id') ?></dt>
-                <dd class="col-sm-8"><?= $this->Number->format($votacao->id) ?></dd>
+                <dd class="col-sm-8"><?= $votacao->id ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('TR') ?></dt>
                 <dd class="col-sm-8"><?= $this->Html->link($this->Number->format($votacao->tr), ['controller' => 'Apoios', 'action' => 'viewtr', '?' => ['evento_id' => $votacao->evento->id, 'tr' => $votacao->tr]]) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Usuário') ?></dt>

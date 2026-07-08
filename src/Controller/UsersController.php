@@ -70,8 +70,11 @@ class UsersController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Users->find();
+        // $query->contain([
+        //     'Votacoes' => fn($q)
+        //         => $q->where(['Votacoes.evento_id'
+        //         => $this->request->getSession()->read('selected_evento_id')])]);
         $users = $this->paginate($query);
-
         $this->set(compact('users'));
     }
 
@@ -84,7 +87,16 @@ class UsersController extends AppController
      */
     public function view($id = null)
     {
-        $user = $this->Users->get($id, contain: ['Votacoes']);
+        $user = $this->Users->get($id, contain: [
+            'Votacoes' => [
+                'Users',
+                'Eventos',
+                'queryBuilder' =>
+                    fn($q)
+                        => $q->where(['Votacoes.evento_id'
+                        => $this->request->getSession()->read('selected_evento_id')])
+            ]
+        ]);
         $this->Authorization->authorize($user);
         $this->set(compact('user'));
     }

@@ -38,19 +38,14 @@
                             <thead class="table-light">
                                 <tr>
                                     <th><?= __('Id') ?></th>
-                                    <th><?= __('User Id') ?></th>
-                                    <th><?= __('Evento Id') ?></th>
+                                    <th><?= __('User') ?></th>
+                                    <th><?= __('Evento') ?></th>
                                     <th><?= __('Grupo') ?></th>
-                                    <th><?= __('Tr') ?></th>
-                                    <th><?= __('Tr Suprimida') ?></th>
-                                    <th><?= __('Tr Aprovada') ?></th>
-                                    <th><?= __('Item Id') ?></th>
+                                    <th><?= __('TR') ?></th>
                                     <th><?= __('Item') ?></th>
                                     <th><?= __('Resultado') ?></th>
                                     <th><?= __('Votacao') ?></th>
-                                    <th><?= __('Item Modificada') ?></th>
                                     <th><?= __('Data') ?></th>
-                                    <th><?= __('Observacoes') ?></th>
                                     <th class="d-flex flex-wrap gap-2"><?= __('Actions') ?></th>
                                 </tr>
                             </thead>
@@ -58,17 +53,14 @@
                             <?php foreach ($user->votacoes as $votacao) : ?>
                             <tr>
                                 <td><?= h($votacao->id) ?></td>
-                                <td><?= h($votacao->user_id) ?></td>
-                                <td><?= h($votacao->evento_id) ?></td>
+                                <td><?= h($votacao->user->username) ?></td>
+                                <td><?= h($votacao->evento->nome) ?></td>
                                 <td><?= h($votacao->grupo) ?></td>
                                 <td><?= h($votacao->tr) ?></td>
-                                <td><?= h($votacao->item_id) ?></td>
                                 <td><?= h($votacao->item) ?></td>
                                 <td><?= h($votacao->resultado) ?></td>
                                 <td><?= h($votacao->votacao) ?></td>
-                                <td><?= h($votacao->item_modificada) ?></td>
                                 <td><?= h($votacao->data) ?></td>
-                                <td><?= h($votacao->observacoes) ?></td>
                                 <td class="d-flex flex-wrap gap-2">
                                     <?= $this->Html->link(__('View'), ['controller' => 'Votacoes', 'action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
                                     <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
