@@ -18,10 +18,27 @@ class ItemsController extends AppController
     public function index()
     {
         $this->Authorization->skipAuthorization();
+
+        $session = $this->request->getSession();
+
+        // Handle TR filter: read from query param, persist in session
+        $trFilter = $this->request->getQuery('tr_filter');
+        if ($trFilter !== null) {
+            if ($trFilter === '' || $trFilter === 'all') {
+                $session->delete('items_tr_filter');
+                $trFilter = null;
+            } else {
+                $session->write('items_tr_filter', $trFilter);
+            }
+        } else {
+            $trFilter = $session->read('items_tr_filter');
+        }
+
         $query = $this->Items->find()
+            ->orderBy(['Items.item' => 'ASC'])
             ->contain(['Apoios', 'Votacoes']);
 
-        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $selectedEventoId = $session->read('selected_evento_id');
         if ($selectedEventoId) {
             $query->innerJoinWith('Apoios')
                 ->where(['Apoios.evento_id' => $selectedEventoId]);
@@ -35,9 +52,40 @@ class ItemsController extends AppController
             ]]);
         }
 
+        // Apply TR filter (item field format: "XX.YY" – filter by first 2 digits)
+        if ($trFilter) {
+            $query->where(['Items.item LIKE' => $trFilter . '.%']);
+        }
+
+        // Build available TR options from the same base conditions (without the TR filter)
+        $trOptionsQuery = $this->Items->find();
+        if ($selectedEventoId) {
+            $trOptionsQuery->innerJoinWith('Apoios')
+                ->where(['Apoios.evento_id' => $selectedEventoId]);
+        }
+        if ($identity && $identity->role === 'relator') {
+            $trOptionsQuery->where(['OR' => [
+                ['Items.item NOT LIKE' => '%99'],
+                ['Items.user_id' => $identity->id]
+            ]]);
+        }
+        $trOptionsRows = $trOptionsQuery
+            ->select(['tr_prefix' => $trOptionsQuery->newExpr('SUBSTR(Items.item, 1, 2)')])
+            ->distinct()
+            ->order(['tr_prefix' => 'ASC'])
+            ->all();
+
+        $trOptions = [];
+        foreach ($trOptionsRows as $row) {
+            $prefix = $row->tr_prefix;
+            if ($prefix !== null && $prefix !== '') {
+                $trOptions[$prefix] = $prefix;
+            }
+        }
+
         $items = $this->paginate($query);
 
-        $this->set(compact('items'));
+        $this->set(compact('items', 'trOptions', 'trFilter'));
     }
 
     /**

@@ -7,6 +7,8 @@
 <?php
     $identity = $this->request->getAttribute('identity');
     $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+    $session = $this->request->getSession();
+    $currentTrFilter = $trFilter ?? $session->read('votacoes_tr_filter') ?? 'todos';
 ?>
 <div class="card shadow-sm">
 
@@ -16,8 +18,31 @@
             <li class="nav-item">
                 <?= $this->Html->link(__('New Votacao'), ['action' => 'add'], ['class' => 'btn btn-primary']) ?>
             </li>
-        </ul>
+        </ul> 
     </nav>
+
+    <div class="card-body">
+        <?= $this->Form->create(null, ['type' => 'get', 'class' => 'row g-2 align-items-end']) ?>
+            <div class="col-auto">
+                <label class="form-label fw-semibold"><?= __('Filtrar por TR') ?></label>
+                <?php
+                    $trOptions = ['todos' => __('Todos')];
+                    foreach ($trValues ?? [] as $tr) {
+                        $trOptions[(string)$tr] = $tr;
+                    }
+                ?>
+                <?= $this->Form->control('tr_filter', [
+                    'type' => 'select',
+                    'options' => $trOptions,
+                    'value' => $currentTrFilter,
+                    'class' => 'form-select form-select-sm',
+                    'label' => false,
+                    'empty' => false,
+                    'onchange' => 'this.form.submit()',
+                ]) ?>
+            </div>
+        <?= $this->Form->end() ?>
+    </div>
 
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
@@ -28,7 +53,6 @@
                     <th><?= $this->Paginator->sort('evento_id') ?></th>
                     <th><?= $this->Paginator->sort('grupo') ?></th>
                     <th><?= $this->Paginator->sort('tr') ?></th>
-                    <th><?= $this->Paginator->sort('item_id') ?></th>
                     <th><?= $this->Paginator->sort('item') ?></th>
                     <th><?= $this->Paginator->sort('resultado') ?></th>
                     <th><?= $this->Paginator->sort('votacao') ?></th>
@@ -53,7 +77,6 @@
                     <td><?= $this->Number->format($votacao->grupo) ?></td>
                     <td><?= $this->Html->link($votacao->tr, ['controller' => 'Apoios', 'action' => 'viewtr', '?' => ['evento_id' => $votacao->evento->id, 'tr' => $this->Number->format($votacao->tr)]]) ?></td>
                     <td><?= $votacao->hasValue('votacao_item') ? $this->Html->link($votacao->votacao_item->item, ['controller' => 'Items', 'action' => 'view', $votacao->votacao_item->id]) : '' ?></td>
-                    <td><?= h($votacao->item) ?></td>
                     <td><?= h($votacao->resultado) ?></td>
                     <td><?= h($votacao->votacao) ?></td>
                     <td><?= h($votacao->data) ?></td>

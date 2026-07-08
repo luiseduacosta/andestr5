@@ -43,7 +43,10 @@
                 <legend><?= __('Resultado da votação') ?></legend>
                 <?php
                     echo $this->Form->control('resultado', [
-                        'options' => ['Aprovado' => __('TR aprovada (prossegue sem rejeição)'), 'Rejeitado' => __('TR rejeitada')],
+                        'options' => [
+                            'aprovada' => __('TR aprovada (prossegue sem rejeição)'), 
+                            'suprimida' => __('TR suprimida (rejeitada)')
+                        ],
                         'class' => 'form-select',
                         'label' => ['class' => 'form-label'],
                         'empty' => false,

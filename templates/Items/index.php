@@ -2,6 +2,8 @@
 /**
  * @var \App\View\AppView $this
  * @var iterable<\App\Model\Entity\Item> $items
+ * @var array<string,string> $trOptions
+ * @var string|null $trFilter
  */
 ?>
 <div class="card shadow-sm">
@@ -17,6 +19,26 @@
             </ul>
             <?php endif; ?>
         </nav>
+    </div>
+
+    <div class="card-body pb-0">
+        <?= $this->Form->create(null, [
+            'url' => ['controller' => 'Items', 'action' => 'index'],
+            'type' => 'get',
+            'class' => 'd-flex align-items-center gap-2',
+            'id' => 'tr-filter-form'
+        ]) ?>
+            <label class="form-label mb-0 text-nowrap fw-semibold"><?= __('Filtrar por TR:') ?></label>
+            <?= $this->Form->control('tr_filter', [
+                'type' => 'select',
+                'options' => ['all' => __('Todos')] + $trOptions,
+                'value' => $trFilter ?: 'all',
+                'label' => false,
+                'class' => 'form-select form-select-sm',
+                'style' => 'width: auto;',
+                'onchange' => 'document.getElementById("tr-filter-form").submit()'
+            ]) ?>
+        <?= $this->Form->end() ?>
     </div>
 
     <div class="card-body table-responsive">

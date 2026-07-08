@@ -41,7 +41,7 @@ class ApoiosTable extends Table
         parent::initialize($config);
 
         $this->setTable('apoios');
-        $this->setDisplayField('caderno');
+        $this->setDisplayField('numero_texto');
         $this->setPrimaryKey('id');
 
         $this->belongsTo('Eventos', [

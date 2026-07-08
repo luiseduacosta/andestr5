@@ -19,6 +19,7 @@ class VotacoesController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Votacoes->find()
+            ->orderBy(['Votacoes.item' => 'ASC'])
             ->contain(['Users', 'Eventos', 'Items']);
 
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
@@ -31,6 +32,26 @@ class VotacoesController extends AppController
             $query->where(['Votacoes.item_id' => $itemId]);
         }
 
+        // TR filter - check GET param first, then session
+        $session = $this->request->getSession();
+        $trFilter = $this->request->getQuery('tr_filter');
+        
+        if ($trFilter !== null) {
+            // Store in session when explicitly set via GET
+            if ($trFilter === 'todos') {
+                $session->delete('votacoes_tr_filter');
+            } else {
+                $session->write('votacoes_tr_filter', $trFilter);
+            }
+        } else {
+            // Fall back to session value
+            $trFilter = $session->read('votacoes_tr_filter');
+        }
+        
+        if ($trFilter && $trFilter !== 'todos') {
+            $query->where(['Votacoes.tr' => (int)$trFilter]);
+        }
+
         $identity = $this->Authentication->getIdentity();
         if ($identity && $identity->role === 'relator') {
             $query->where(['Votacoes.grupo' => (int)substr((string)$identity->username, 5)]);
@@ -38,7 +59,24 @@ class VotacoesController extends AppController
 
         $votacoes = $this->paginate($query);
 
-        $this->set(compact('votacoes'));
+        // Get unique TR values for the filter dropdown
+        $trValuesQuery = $this->Votacoes->find()
+            ->where(['Votacoes.evento_id' => $selectedEventoId])
+            ->select(['tr'])
+            ->distinct('tr');
+
+        if ($selectedEventoId) {
+            $trValuesQuery->where(['Votacoes.evento_id' => $selectedEventoId]);
+        }
+        if ($identity && $identity->role === 'relator') {
+            $trValuesQuery->where(['Votacoes.grupo' => (int)substr((string)$identity->username, 5)]);
+        }
+        $trValues = $trValuesQuery->orderBy(['Votacoes.tr' => 'ASC'])
+            ->all()
+            ->extract('tr')
+            ->toArray();
+
+        $this->set(compact('votacoes', 'trValues', 'trFilter'));
     }
 
     /**
@@ -86,7 +124,10 @@ class VotacoesController extends AppController
         }
 
         if ($this->request->is('post')) {
-            $votacao = $this->Votacoes->patchEntity($votacao, $this->request->getData());
+            $data = $this->request->getData();
+            $resultado = $data['resultado'] ?? '';
+            
+            $votacao = $this->Votacoes->patchEntity($votacao, $data);
             if ($selectedEventoId) {
                 $votacao->evento_id = $selectedEventoId;
             }
@@ -94,6 +135,37 @@ class VotacoesController extends AppController
             $identity = $this->Authentication->getIdentity();
             if ($identity && $identity->role === 'relator') {
                 $votacao->user_id = $identity->id;
+                $votacao->grupo = (int)substr((string)$identity->username, 5);
+            }
+
+            // Handle 'inclusao' - create new item first
+            if ($resultado === 'inclusao') {
+                // Locate the apoio_id of this item (if any) and set it in the new item's apoio_id field
+                $apoioId = $this->fetchTable('Apoios')->find()
+                    ->select(['id'])
+                    ->where(['evento_id' => $selectedEventoId, 'numero_texto' => $data['tr']])
+                    ->first();
+                if (!$apoioId) {
+                    $this->Flash->error(__('Erro ao localizar apoio_id. Tente novamente.'));
+                    return;
+                }
+                $novoItem = $this->Votacoes->Items->newEmptyEntity();
+                $novoItem->apoio_id = $apoioId ? $apoioId->id : null;
+                $novoItem->item = $data['tr'] . '.' . '99';
+                $novoItem->texto = $data['item_modificada'] ?? '';
+                $novoItem->tr = $data['tr'] ?? '';
+                $novoItem->user_id = $identity->id;
+                if ($this->Votacoes->Items->save($novoItem)) {
+                    // Use the new item ID for the votacao
+                    $votacao->item_id = $novoItem->id;
+                    $votacao->item = $novoItem->item;
+                    $votacao->resultado = 'inclusão';
+                    $votacao->item_modificada = $data['item_modificada'] ?? '';
+                } else {
+                    $this->Flash->error(__('Erro ao criar novo item. Tente novamente.'));
+                    $this->set(compact('votacao', 'users', 'usersData', 'eventos', 'items'));
+                    return;
+                }
             }
 
             // Check item access
@@ -117,11 +189,35 @@ class VotacoesController extends AppController
             $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
         }
         $identity = $this->Authentication->getIdentity();
-        $users = $this->Votacoes->Users->find('list', limit: 200)->all();
+        // Get users with role and username for JavaScript
+        $usersQuery = $this->Votacoes->Users->find()
+            ->select(['id', 'username', 'role'])
+            ->toArray();
+        
+        // Create a map for the dropdown (id => username)
+        $users = [];
+        $usersData = [];
+        foreach ($usersQuery as $user) {
+            $users[$user->id] = $user->username;
+            $usersData[$user->id] = [
+                'role' => $user->role,
+                'username' => $user->username,
+            ];
+        }
+        
         $eventos = $this->buildEventoOptions();
         $items = $this->buildItemOptions($selectedEventoId, $identity, $votacao->item_id ? (int)$votacao->item_id : null);
+        
+        // Get item texts for JavaScript auto-fill
+        $itemTexts = [];
+        $itemsQuery = $this->Votacoes->Items->find()
+            ->select(['id', 'texto'])
+            ->toArray();
+        foreach ($itemsQuery as $item) {
+            $itemTexts[$item->id] = $item->texto;
+        }
 
-        $this->set(compact('votacao', 'users', 'eventos', 'items'));
+        $this->set(compact('votacao', 'users', 'usersData', 'eventos', 'items', 'itemTexts'));
     }
 
     /**
@@ -170,11 +266,20 @@ class VotacoesController extends AppController
             $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
         }
         $identity = $this->Authentication->getIdentity();
-        $users = $this->Votacoes->Users->find('list', limit: 200)->all();
+        $users = $this->Votacoes->Users->find('list', limit: 50)->all();
         $eventos = $this->buildEventoOptions();
         $items = $this->buildItemOptions($selectedEventoId, $identity, $votacao->item_id ? (int)$votacao->item_id : null);
+        
+        // Get item texts for JavaScript auto-fill
+        $itemTexts = [];
+        $itemsQuery = $this->Votacoes->Items->find()
+            ->select(['id', 'texto'])
+            ->toArray();
+        foreach ($itemsQuery as $item) {
+            $itemTexts[$item->id] = $item->texto;
+        }
 
-        $this->set(compact('votacao', 'users', 'eventos', 'items'));
+        $this->set(compact('votacao', 'users', 'eventos', 'items', 'itemTexts'));
     }
 
     /**
@@ -316,7 +421,7 @@ class VotacoesController extends AppController
             $data = $this->request->getData();
             $resultado = $data['resultado'] ?? '';
 
-            if ($resultado === 'Rejeitado') {
+            if ($resultado === 'suprimida') {
                 $entities = [];
                 foreach ($itensTr as $item) {
                     $votacao = $this->Votacoes->newEmptyEntity();
@@ -326,7 +431,7 @@ class VotacoesController extends AppController
                     $votacao->tr = $tr;
                     $votacao->item_id = $item->id;
                     $votacao->item = $item->item;
-                    $votacao->resultado = 'Rejeitado';
+                    $votacao->resultado = 'suprimida';
                     $votacao->votacao = $data['votacao'] ?? '';
                     $votacao->item_modificada = '';
                     $votacao->data = new \Cake\I18n\DateTime();
@@ -442,7 +547,7 @@ class VotacoesController extends AppController
         // Usar o finder personalizado
         $itensRestantes = $this->Votacoes->findItensSemVoto(
             $this->Votacoes->Items->find(),
-            ['grupo' => $grupo, 'tr' => $tr, 'evento_id' => $selectedEventoId]
+            ['grupo' => $grupo, 'tr' => $tr, 'evento_id' => $selectedEventoId, 'user_id' => $identity->id]
         )->all();
 
         if ($itensRestantes->isEmpty()) {
@@ -558,6 +663,7 @@ class VotacoesController extends AppController
             $votacao->tr = $tr;
             $votacao->item_id = $novoItem->id;
             $votacao->item = $novoItem->item;
+            $votacao->resultado = 'inclusao';
             $votacao->item_modificada = $data['item_modificada'] ?? '';
             $votacao->data = new \Cake\I18n\DateTime();
 

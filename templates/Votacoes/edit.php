@@ -30,9 +30,18 @@
                     echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('TR') . '']]);
                     echo $this->Form->control('item_id', ['options' => $items, 'class' => 'form-select', 'label' => ['class' => 'form-label', 'text' => __('Item Id') . '']]);
                     echo $this->Form->control('item', ['type' => 'text', 'class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Item') . '']]);
-                    echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Resultado') . '']]);
+                    echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Resultado') . ''], 'options' => [
+                        'suprimida' => 'Suprimida', 
+                        'aprovada' => 'Aprovada', 
+                        'modificada' => 'Modificada']
+                    ]);
                     echo $this->Form->control('votacao', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Votação') . '']]);
-                    echo $this->Form->control('item_modificada', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label', 'text' => __('Modificação/inclusão') . '']]);
+                    echo $this->Form->control('item_modificada', [
+                        'class' => 'form-control markdown-editor', 
+                        'label' => ['class' => 'form-label', 'text' => __('Modificação/inclusão') . ''],
+                        'id' => 'item-modificada-field',
+                        'style' => 'display: none;',
+                    ]);
                     echo $this->Form->control('data', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Data') . '']]);
                     echo $this->Form->control('observacoes', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label', 'text' => __('Observações') . '']]);
                 ?>
@@ -42,3 +51,94 @@
             </div>
         </div>
 </div>
+
+<?php $this->append('script'); ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+    
+    const resultadoSelect = document.querySelector('select[name="resultado"]');
+    const itemModificadaField = document.getElementById('item-modificada-field');
+    const itemModificadaLabel = document.querySelector('label[for="item-modificada-field"]');
+    const itemIdSelect = document.querySelector('select[name="item_id"]');
+    
+    // Item texts passed from controller
+    const itemTexts = <?= json_encode($itemTexts ?? []) ?>;
+    
+    if (!resultadoSelect || !itemModificadaField) {
+        return;
+    }
+    
+    function toggleItemModificada() {
+        if (!resultadoSelect || !itemModificadaField) {
+            return;
+        }
+        
+        const wrapper = itemModificadaField.closest('.mb-3, .form-group') || itemModificadaField.parentElement;
+        const resultadoValue = resultadoSelect.value;
+        const showField = resultadoValue === 'modificada' || resultadoValue === 'inclusao';
+        
+        if (showField) {
+            itemModificadaField.style.display = '';
+            if (wrapper) {
+                wrapper.style.display = '';
+            }
+            
+            // Change label based on resultado
+            if (itemModificadaLabel) {
+                if (resultadoValue === 'inclusao') {
+                    itemModificadaLabel.textContent = 'Inclusão de novo item';
+                } else {
+                    itemModificadaLabel.textContent = 'Item Modificada';
+                }
+            }
+            
+            // Auto-fill item_modificada with item text when resultado is 'modificada'
+            if (resultadoValue === 'modificada' && itemIdSelect && itemTexts) {
+                const selectedItemId = itemIdSelect.value;
+                if (selectedItemId && itemTexts[selectedItemId]) {
+                    // Only auto-fill if field is empty or user hasn't modified it
+                    if (!itemModificadaField.value || itemModificadaField.dataset.autoFilled === 'true') {
+                        itemModificadaField.value = itemTexts[selectedItemId];
+                        itemModificadaField.dataset.autoFilled = 'true';
+                    }
+                }
+            }
+        } else {
+            itemModificadaField.value = '';
+            itemModificadaField.style.display = 'none';
+            itemModificadaField.dataset.autoFilled = 'false';
+            if (wrapper) {
+                wrapper.style.display = 'none';
+            }
+        }
+    }
+    
+    // Listen for resultado changes
+    if (resultadoSelect) {
+        resultadoSelect.addEventListener('change', toggleItemModificada);
+        toggleItemModificada();
+    }
+    
+    // Listen for item_id changes to update item_modificada when resultado is 'modificada'
+    if (itemIdSelect) {
+        itemIdSelect.addEventListener('change', function() {
+            if (resultadoSelect && resultadoSelect.value === 'modificada') {
+                const selectedItemId = this.value;
+                if (selectedItemId && itemTexts[selectedItemId]) {
+                    itemModificadaField.value = itemTexts[selectedItemId];
+                    itemModificadaField.dataset.autoFilled = 'true';
+                }
+            }
+        });
+    }
+    
+    // Mark as manually modified if user types in the field
+    if (itemModificadaField) {
+        itemModificadaField.addEventListener('input', function() {
+            this.dataset.autoFilled = 'false';
+        });
+    }
+});
+</script>
+<?php $this->end(); ?>

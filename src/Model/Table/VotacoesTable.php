@@ -174,16 +174,20 @@ class VotacoesTable extends Table
         $grupo = (int)($options['grupo'] ?? 0);
         $tr = (int)($options['tr'] ?? 0);
         $eventoId = (int)($options['evento_id'] ?? 0);
+        $userId = (int)($options['user_id'] ?? 0);
 
-        if ($grupo === 0 || $tr === 0 || $eventoId === 0) {
+        if ($grupo === 0 || $tr === 0 || $eventoId === 0 || $userId === 0) {
             return $query->where(['1 = 0']);
         }
 
-        // Subquery: IDs dos itens que JÁ têm voto neste evento
+        // Subquery: IDs dos itens que JÁ têm voto deste usuário neste evento
         $votados = $this->find()
             ->select(['Votacoes.item_id'])
             ->distinct()
-            ->where(['Votacoes.evento_id' => $eventoId]);
+            ->where([
+                'Votacoes.evento_id' => $eventoId,
+                'Votacoes.user_id' => $userId,
+            ]);
 
         return $this->Items->find()
             ->select(['Items.id', 'Items.item', 'Items.tr', 'Items.texto'])
@@ -192,6 +196,7 @@ class VotacoesTable extends Table
                 'Apoios.evento_id' => $eventoId,
                 'Items.tr' => $tr,
                 'Items.id NOT IN' => $votados,
+                'Items.item NOT LIKE' => '%.99',
             ])
             ->order(['Items.item' => 'ASC']);
     }

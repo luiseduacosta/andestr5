@@ -22,7 +22,7 @@
             <h3><?= h($item->item) ?></h3>
             <dl class="row mb-0">
                 <dt class="col-sm-4 text-secondary"><?= __('Apoio') ?></dt>
-                <dd class="col-sm-8"><?= $item->hasValue('apoio') ? $this->Html->link($item->apoio->caderno, ['controller' => 'Apoios', 'action' => 'view', $item->apoio->id]) : '' ?></dd>
+                <dd class="col-sm-8"><?= $item->hasValue('apoio') ? $this->Html->link($item->apoio->numero_texto, ['controller' => 'Apoios', 'action' => 'view', $item->apoio->id]) : '' ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Item') ?></dt>
                 <dd class="col-sm-8"><?= h($item->item) ?></dd>
                 <dt class="col-sm-4 text-secondary"><?= __('Id') ?></dt>
