@@ -40,8 +40,10 @@
             <?php
                 $grupo = null;
                 $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+                $identityGroup = null;
                 if ($identity && $identity->role === 'relator') {
                     $grupo = (int)substr((string)$identity->username, 5);
+                    $identityGroup = $grupo;
                 }
                 $tr = $item->tr;
             ?>
@@ -117,7 +119,8 @@
                         <tbody>
                         <?php foreach ($item->votacoes as $votacao) : ?>
                         <?php
-                            $canEditOrDeleteVotacao = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
+                            $canEditVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
+                            $canDeleteVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
                         ?>
                         <tr>
                             <td><?= h($votacao->id) ?></td>
@@ -134,8 +137,10 @@
                             <td><?= h($votacao->observacoes) ?></td>
                             <td class="d-flex flex-wrap gap-2">
                                 <?= $this->Html->link(__('View'), ['controller' => 'Votacoes', 'action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                                <?php if ($canEditOrDeleteVotacao) : ?>
+                                <?php if ($canEditVotacao) : ?>
                                     <?= $this->Html->link(__('Edit'), ['controller' => 'Votacoes', 'action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                                <?php endif; ?>
+                                <?php if ($canDeleteVotacao) : ?>
                                     <?= $this->Form->postLink(__('Delete'), ['controller' => 'Votacoes', 'action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
                                 <?php endif; ?>
                             </td>

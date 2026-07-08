@@ -28,12 +28,19 @@
                     echo $this->Form->control('evento_id', ['options' => $eventos, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('grupo', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Grupo') . '']]);
                     echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('TR') . '']]);
-                    echo $this->Form->control('item_id', ['options' => $items, 'class' => 'form-select', 'label' => ['class' => 'form-label', 'text' => __('Item Id') . '']]);
+                    echo $this->Form->control('item_id', [
+                        'options' => $items,
+                        'class' => 'form-select',
+                        'label' => ['class' => 'form-label', 'text' => __('Item Id') . ''],
+                        'help' => __('Disabled for inclusão because a new item code is generated automatically.'),
+                        'id' => 'item-id-field',
+                    ]);
                     echo $this->Form->control('item', ['type' => 'text', 'class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Item') . '']]);
                     echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Resultado') . ''], 'options' => [
                         'suprimida' => 'Suprimida', 
                         'aprovada' => 'Aprovada', 
-                        'modificada' => 'Modificada']
+                        'modificada' => 'Modificada', 
+                        'inclusão' => 'Inclusão']
                     ]);
                     echo $this->Form->control('votacao', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => __('Votação') . '']]);
                     echo $this->Form->control('item_modificada', [
@@ -61,6 +68,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemModificadaField = document.getElementById('item-modificada-field');
     const itemModificadaLabel = document.querySelector('label[for="item-modificada-field"]');
     const itemIdSelect = document.querySelector('select[name="item_id"]');
+    const itemIdHelp = document.querySelector('#item-id-field + .help, #item-id-field ~ .form-text');
+    const itemInput = document.querySelector('input[name="item"]');
+    const trInput = document.querySelector('input[name="tr"]');
     
     // Item texts passed from controller
     const itemTexts = <?= json_encode($itemTexts ?? []) ?>;
@@ -69,6 +79,43 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    function isInclusionResult(value) {
+        return value === 'inclusao' || value === 'inclusão';
+    }
+
+    function formatInclusionItemCode(trValue) {
+        const digits = String(trValue || '').replace(/\D/g, '');
+        if (!digits) {
+            return '';
+        }
+
+        return digits.padStart(2, '0') + '.99';
+    }
+
+    function syncItemForInclusion() {
+        if (!resultadoSelect || !itemInput || !trInput || !isInclusionResult(resultadoSelect.value)) {
+            return;
+        }
+
+        const inclusionItemCode = formatInclusionItemCode(trInput.value);
+        if (inclusionItemCode) {
+            itemInput.value = inclusionItemCode;
+        }
+    }
+
+    function toggleItemIdSelectState() {
+        if (!resultadoSelect || !itemIdSelect) {
+            return;
+        }
+
+        const disableItemId = isInclusionResult(resultadoSelect.value);
+        itemIdSelect.disabled = disableItemId;
+
+        if (itemIdHelp) {
+            itemIdHelp.style.display = disableItemId ? '' : 'none';
+        }
+    }
+
     function toggleItemModificada() {
         if (!resultadoSelect || !itemModificadaField) {
             return;
@@ -76,7 +123,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const wrapper = itemModificadaField.closest('.mb-3, .form-group') || itemModificadaField.parentElement;
         const resultadoValue = resultadoSelect.value;
-        const showField = resultadoValue === 'modificada' || resultadoValue === 'inclusao';
+        const showField = resultadoValue === 'modificada' || isInclusionResult(resultadoValue);
+
+        toggleItemIdSelectState();
         
         if (showField) {
             itemModificadaField.style.display = '';
@@ -86,11 +135,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Change label based on resultado
             if (itemModificadaLabel) {
-                if (resultadoValue === 'inclusao') {
+                if (isInclusionResult(resultadoValue)) {
                     itemModificadaLabel.textContent = 'Inclusão de novo item';
                 } else {
                     itemModificadaLabel.textContent = 'Item Modificada';
                 }
+            }
+
+            if (isInclusionResult(resultadoValue)) {
+                syncItemForInclusion();
             }
             
             // Auto-fill item_modificada with item text when resultado is 'modificada'
@@ -130,7 +183,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     itemModificadaField.dataset.autoFilled = 'true';
                 }
             }
+
+            if (resultadoSelect && isInclusionResult(resultadoSelect.value)) {
+                syncItemForInclusion();
+            }
         });
+    }
+
+    if (trInput) {
+        trInput.addEventListener('input', syncItemForInclusion);
     }
     
     // Mark as manually modified if user types in the field

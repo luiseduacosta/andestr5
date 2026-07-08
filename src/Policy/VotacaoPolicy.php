@@ -53,7 +53,15 @@ class VotacaoPolicy
      */
     public function canEdit(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'admin' || ($user->role === 'relator' && (int)$user->id === (int)$resource->user_id);
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        if ($user->role === 'relator') {
+            return (int)$resource->grupo === (int)substr((string)$user->username, 5);
+        }
+
+        return false;
     }
 
     /**
@@ -61,7 +69,15 @@ class VotacaoPolicy
      */
     public function canDelete(IdentityInterface $user, Votacao $resource): bool
     {
-        return $user->role === 'admin' || ($user->role === 'relator' && (int)$user->id === (int)$resource->user_id);
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        if ($user->role === 'relator') {
+            return (int)$resource->grupo === (int)substr((string)$user->username, 5);
+        }
+
+        return false;
     }
 
     public function canVotarTr(IdentityInterface $user): bool

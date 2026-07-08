@@ -4,13 +4,23 @@
  * @var \App\Model\Entity\Votacao $votacao
  */
 ?>
-<?php $identity = $this->request->getAttribute('identity'); ?>
+<?php
+    $identity = $this->request->getAttribute('identity');
+    $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+    $identityGroup = $identity && $identity->role === 'relator' ? (int)substr((string)$identity->username, 5) : null;
+    $canEditVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
+    $canDeleteVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
+?>
 <div class="row g-3">
 
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
             <ul class="navbar-nav ms-auto mt-lg-0">
-                <li class="nav-item"><?= $this->Html->link(__('Edit Votacao'), ['action' => 'edit', $votacao->id], ['class' => 'btn btn-primary w-100']) ?></li>
-                <li class="nav-item"><?= $this->Form->postLink(__('Delete Votacao'), ['action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+                <?php if ($canEditVotacao) : ?>
+                    <li class="nav-item"><?= $this->Html->link(__('Edit Votacao'), ['action' => 'edit', $votacao->id], ['class' => 'btn btn-primary w-100']) ?></li>
+                <?php endif; ?>
+                <?php if ($canDeleteVotacao) : ?>
+                    <li class="nav-item"><?= $this->Form->postLink(__('Delete Votacao'), ['action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+                <?php endif; ?>
                 <li class="nav-item"><?= $this->Html->link(__('List Votacoes'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('New Votacao'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
             </ul>

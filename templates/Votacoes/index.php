@@ -7,6 +7,7 @@
 <?php
     $identity = $this->request->getAttribute('identity');
     $isPrivilegedUser = $identity && in_array($identity->role, ['admin', 'editor'], true);
+    $identityGroup = $identity && $identity->role === 'relator' ? (int)substr((string)$identity->username, 5) : null;
     $session = $this->request->getSession();
     $currentTrFilter = $trFilter ?? $session->read('votacoes_tr_filter') ?? 'todos';
 ?>
@@ -63,7 +64,8 @@
             <tbody>
                 <?php foreach ($votacoes as $votacao): ?>
                 <?php
-                    $canManageVotacao = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
+                    $canEditVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
+                    $canDeleteVotacao = $isPrivilegedUser || ($identityGroup !== null && $identityGroup === (int)$votacao->grupo);
                     $canViewUser = $isPrivilegedUser || ($identity && (int)$identity->id === (int)$votacao->user_id);
                 ?>
                 <tr>
@@ -82,8 +84,10 @@
                     <td><?= h($votacao->data) ?></td>
                     <td class="text-center">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $votacao->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
-                        <?php if ($canManageVotacao) : ?>
+                        <?php if ($canEditVotacao) : ?>
                             <?= $this->Html->link(__('Edit'), ['action' => 'edit', $votacao->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
+                        <?php endif; ?>
+                        <?php if ($canDeleteVotacao) : ?>
                             <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $votacao->id], ['confirm' => __('Are you sure you want to delete # {0}?', $votacao->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
                         <?php endif; ?>
                     </td>

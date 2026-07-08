@@ -138,47 +138,14 @@ class VotacoesController extends AppController
                 $votacao->grupo = (int)substr((string)$identity->username, 5);
             }
 
-            // Handle 'inclusao' - create new item first
-            if ($resultado === 'inclusao') {
-                // Locate the apoio_id of this item (if any) and set it in the new item's apoio_id field
-                $apoioId = $this->fetchTable('Apoios')->find()
-                    ->select(['id'])
-                    ->where(['evento_id' => $selectedEventoId, 'numero_texto' => $data['tr']])
-                    ->first();
-                if (!$apoioId) {
-                    $this->Flash->error(__('Erro ao localizar apoio_id. Tente novamente.'));
-                    return;
-                }
-                $novoItem = $this->Votacoes->Items->newEmptyEntity();
-                $novoItem->apoio_id = $apoioId ? $apoioId->id : null;
-                $novoItem->item = $data['tr'] . '.' . '99';
-                $novoItem->texto = $data['item_modificada'] ?? '';
-                $novoItem->tr = $data['tr'] ?? '';
-                $novoItem->user_id = $identity->id;
-                if ($this->Votacoes->Items->save($novoItem)) {
-                    // Use the new item ID for the votacao
-                    $votacao->item_id = $novoItem->id;
-                    $votacao->item = $novoItem->item;
-                    $votacao->resultado = 'inclusão';
-                    $votacao->item_modificada = $data['item_modificada'] ?? '';
-                } else {
-                    $this->Flash->error(__('Erro ao criar novo item. Tente novamente.'));
-                    $this->set(compact('votacao', 'users', 'usersData', 'eventos', 'items'));
+            if ($this->isInclusionResult($resultado)) {
+                if (!$this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity)) {
                     return;
                 }
             }
 
-            // Check item access
-            if ($identity && $identity->role === 'relator' && $votacao->item_id) {
-                try {
-                    $itemRecord = $this->Votacoes->Items->get($votacao->item_id);
-                    if (str_ends_with($itemRecord->item, '99') && (int)$itemRecord->user_id !== (int)$identity->id) {
-                        throw new \Cake\Http\Exception\ForbiddenException(__('You are not authorized to vote on this item.'));
-                    }
-                } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
-                    $this->Flash->error(__('Invalid item selected.'));
-                    return $this->redirect(['action' => 'index']);
-                }
+            if ($identity && !$this->ensureRelatorCanAccessItem($identity, $votacao->item_id)) {
+                return $this->redirect(['action' => 'index']);
             }
 
             if ($this->Votacoes->save($votacao)) {
@@ -231,11 +198,15 @@ class VotacoesController extends AppController
     {
         $votacao = $this->Votacoes->get($id, contain: []);
         $this->Authorization->authorize($votacao);
+        $originalResultado = (string)$votacao->resultado;
+        $originalGrupo = (int)$votacao->grupo;
 
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
 
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $votacao = $this->Votacoes->patchEntity($votacao, $this->request->getData());
+            $data = $this->request->getData();
+            $resultado = $data['resultado'] ?? '';
+            $votacao = $this->Votacoes->patchEntity($votacao, $data);
             if ($selectedEventoId) {
                 $votacao->evento_id = $selectedEventoId;
             }
@@ -243,19 +214,17 @@ class VotacoesController extends AppController
             $identity = $this->Authentication->getIdentity();
             if ($identity && $identity->role === 'relator') {
                 $votacao->user_id = $identity->id;
+                $votacao->grupo = (int)substr((string)$identity->username, 5);
             }
 
-            // Check item access
-            if ($identity && $identity->role === 'relator' && $votacao->item_id) {
-                try {
-                    $itemRecord = $this->Votacoes->Items->get($votacao->item_id);
-                    if (str_ends_with($itemRecord->item, '99') && (int)$itemRecord->user_id !== (int)$identity->id) {
-                        throw new \Cake\Http\Exception\ForbiddenException(__('You are not authorized to vote on this item.'));
-                    }
-                } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
-                    $this->Flash->error(__('Invalid item selected.'));
-                    return $this->redirect(['action' => 'index']);
+            if ($this->isInclusionResult($resultado)) {
+                if (!$this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity, $originalResultado)) {
+                    return;
                 }
+            }
+
+            if ($identity && !$this->ensureRelatorCanAccessItem($identity, $votacao->item_id, $originalGrupo)) {
+                return $this->redirect(['action' => 'index']);
             }
 
             if ($this->Votacoes->save($votacao)) {
@@ -300,6 +269,130 @@ class VotacoesController extends AppController
         }
 
         return $options;
+    }
+
+    /**
+     * @param string $resultado Vote result value from the request.
+     * @return bool
+     */
+    private function isInclusionResult(string $resultado): bool
+    {
+        return in_array($resultado, ['inclusao', 'inclusão'], true);
+    }
+
+    /**
+     * @param array<string, mixed> $data Request data.
+     * @param int|string|null $selectedEventoId Event selected in session.
+     * @param mixed $identity Authenticated identity.
+     * @param string|null $originalResultado Previous persisted result on edit.
+     * @return bool
+     */
+    private function applyInclusionItem(
+        object $votacao,
+        array $data,
+        $selectedEventoId,
+        $identity,
+        ?string $originalResultado = null
+    ): bool {
+        $tr = (int)($data['tr'] ?? 0);
+        $apoio = $this->fetchTable('Apoios')->find()
+            ->select(['id'])
+            ->where(['evento_id' => $selectedEventoId, 'numero_texto' => $tr])
+            ->first();
+
+        if (!$apoio) {
+            $this->Flash->error(__('Erro ao localizar apoio_id. Tente novamente.'));
+
+            return false;
+        }
+
+        $itemCode = $this->buildInclusionItemCode($tr);
+        $itemTexto = (string)($data['item_modificada'] ?? '');
+        $linkedItem = null;
+
+        if (!empty($votacao->item_id)) {
+            $linkedItem = $this->Votacoes->Items->find()
+                ->where(['Items.id' => $votacao->item_id])
+                ->first();
+        }
+
+        $canReuseExistingItem = $linkedItem && (
+            $originalResultado === null
+                ? str_ends_with((string)$linkedItem->item, '.99')
+                : ($this->isInclusionResult($originalResultado) || str_ends_with((string)$linkedItem->item, '.99'))
+        );
+
+        if ($canReuseExistingItem) {
+            $linkedItem->apoio_id = $apoio->id;
+            $linkedItem->item = $itemCode;
+            $linkedItem->texto = $itemTexto;
+            $linkedItem->tr = $tr;
+            if (!$this->Votacoes->Items->save($linkedItem)) {
+                $this->Flash->error(__('Erro ao atualizar o item de inclusão. Tente novamente.'));
+
+                return false;
+            }
+        } else {
+            $novoItem = $this->Votacoes->Items->newEmptyEntity();
+            $novoItem->apoio_id = $apoio->id;
+            $novoItem->item = $itemCode;
+            $novoItem->texto = $itemTexto;
+            $novoItem->tr = $tr;
+            $novoItem->user_id = $identity->id;
+            if (!$this->Votacoes->Items->save($novoItem)) {
+                $this->Flash->error(__('Erro ao criar novo item. Tente novamente.'));
+
+                return false;
+            }
+            $linkedItem = $novoItem;
+        }
+
+        $votacao->item_id = $linkedItem->id;
+        $votacao->item = $itemCode;
+        $votacao->resultado = 'inclusão';
+        $votacao->item_modificada = $itemTexto;
+
+        return true;
+    }
+
+    /**
+     * @param int $tr TR number.
+     * @return string
+     */
+    private function buildInclusionItemCode(int $tr): string
+    {
+        return sprintf('%02d.99', $tr);
+    }
+
+    /**
+     * @param mixed $identity Authenticated identity.
+     * @param int|string|null $itemId Selected item id.
+     * @param int|null $votacaoGrupo Existing vote group when editing.
+     * @return bool
+     */
+    private function ensureRelatorCanAccessItem($identity, $itemId, ?int $votacaoGrupo = null): bool
+    {
+        if (!$identity || $identity->role !== 'relator' || !$itemId) {
+            return true;
+        }
+
+        $identityGrupo = (int)substr((string)$identity->username, 5);
+        if ($votacaoGrupo !== null) {
+            return $identityGrupo === $votacaoGrupo;
+        }
+
+        try {
+            $itemRecord = $this->Votacoes->Items->get($itemId);
+            if (str_ends_with((string)$itemRecord->item, '99') && (int)$itemRecord->user_id !== (int)$identity->id) {
+                throw new \Cake\Http\Exception\ForbiddenException(__('You are not authorized to vote on this item.'));
+            }
+        } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
+            $this->Flash->error(__('Invalid item selected.'));
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -691,9 +784,16 @@ class VotacoesController extends AppController
         $this->Authorization->skipAuthorization();
 
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
         $trInput = $this->request->getQuery('trs');
         $items = [];
         $trList = [];
+        
+        // Get grupo number for relator users
+        $userGrupo = null;
+        if ($identity && $identity->role === 'relator') {
+            $userGrupo = (int)substr((string)$identity->username, 5);
+        }
 
         if ($trInput !== null && trim($trInput) !== '') {
             $parts = explode(',', $trInput);
@@ -705,18 +805,27 @@ class VotacoesController extends AppController
             }
 
             if (!empty($trList) && $selectedEventoId) {
-                $items = $this->Votacoes->Items->find()
-                    ->contain(['Apoios', 'Votacoes' => function ($q) use ($selectedEventoId) {
-                        return $q->where(['Votacoes.evento_id' => $selectedEventoId])
+                $itemsQuery = $this->Votacoes->Items->find()
+                    ->contain(['Apoios', 'Votacoes' => function ($q) use ($selectedEventoId, $userGrupo) {
+                        $q->where(['Votacoes.evento_id' => $selectedEventoId])
                             ->contain(['Users'])
                             ->order(['Votacoes.id' => 'ASC']);
+                        
+                        // Filter votacoes by relator's group if user is relator
+                        if ($userGrupo !== null) {
+                            $q->where(['Votacoes.grupo' => $userGrupo]);
+                        }
+                        
+                        return $q;
                     }])
                     ->innerJoinWith('Apoios')
                     ->where([
                         'Apoios.evento_id' => $selectedEventoId,
-                        'Items.tr IN' => $trList
-                    ])
-                    ->order(['Items.tr' => 'ASC', 'Items.item' => 'ASC'])
+                        'Items.tr IN' => $trList,
+                        'Items.item NOT LIKE' => '%.99', // Exclude .99 items from items table
+                    ]);
+                
+                $items = $itemsQuery->order(['Items.tr' => 'ASC', 'Items.item' => 'ASC'])
                     ->all();
 
                 // Coletar destaques de minoria
@@ -739,5 +848,70 @@ class VotacoesController extends AppController
 
         $destaques = $destaques ?? [];
         $this->set(compact('items', 'trInput', 'trList', 'destaques'));
+    }
+
+    /**
+     * Report method
+     *
+     * @return \Cake\Http\Response|null|void Renders view
+     */
+    public function relatorio()
+    {
+        $this->Authorization->skipAuthorization();
+        $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+        $identity = $this->Authentication->getIdentity();
+        $trInput = $this->request->getQuery('trs');
+        $items = [];
+        $trList = [];
+        $userGrupo = null;
+        if ($identity && $identity->role === 'relator') {
+            $userGrupo = (int)substr((string)$identity->username, 5);
+        }
+        if ($trInput !== null && trim($trInput) !== '') {
+            $parts = explode(',', $trInput);
+            foreach ($parts as $part) {
+                $val = trim($part);
+                if (is_numeric($val)) {
+                    $trList[] = (int)$val;
+                }
+            }
+        }
+        
+        if (!empty($trList) && $selectedEventoId) {
+            $whereConditions = [
+                'Votacoes.evento_id' => $selectedEventoId,
+                'Votacoes.tr IN' => $trList,
+            ];
+            
+            // Only filter by grupo if user is relator
+            if ($userGrupo !== null) {
+                $whereConditions['Votacoes.grupo'] = $userGrupo;
+            }
+            
+            // First, get the votacoes with their items
+            $votacoes = $this->Votacoes->find()
+                ->contain([
+                    'Users' => ['fields' => ['username']], 
+                    'Items' => ['fields' => ['texto', 'item', 'tr']]
+                ])
+                ->where($whereConditions)
+                ->order(['Votacoes.tr' => 'ASC', 'Votacoes.item' => 'ASC'])
+                ->all();
+            
+            // Get unique TRs that actually have votacoes
+            $trsWithVotacoes = [];
+            foreach ($votacoes as $votacao) {
+                if (!in_array($votacao->tr, $trsWithVotacoes)) {
+                    $trsWithVotacoes[] = $votacao->tr;
+                }
+            }
+            
+            // Update trList to only include TRs that have votacoes
+            $trList = $trsWithVotacoes;
+            
+            $this->set(compact('votacoes', 'trInput', 'trList'));
+        } else {
+            $this->set(compact('trInput', 'trList'));
+        }
     }
 }

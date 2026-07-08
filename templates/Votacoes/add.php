@@ -30,7 +30,13 @@ $identity = $this->request->getAttribute('identity');
                     echo $this->Form->control('evento_id', ['options' => $eventos, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('grupo', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['text' => 'TR', 'class' => 'form-label']]);
-                    echo $this->Form->control('item_id', ['options' => $items, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('item_id', [
+                        'options' => $items,
+                        'class' => 'form-select',
+                        'label' => ['class' => 'form-label'],
+                        'help' => __('Disabled for inclusão because a new item code is generated automatically.'),
+                        'id' => 'item-id-field',
+                    ]);
                     echo $this->Form->control('item', ['type' => 'text', 'class' => 'form-control', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('resultado', ['class' => 'form-control', 'label' => ['class' => 'form-label'], 'options' => [
                             'aprovada' => __('Aprovado'),
@@ -64,11 +70,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const userIdSelect = document.querySelector('select[name="user_id"]');
     const grupoInput = document.querySelector('input[name="grupo"]');
     const itemIdSelect = document.querySelector('select[name="item_id"]');
+    const itemIdHelp = document.querySelector('#item-id-field + .help, #item-id-field ~ .form-text');
     const itemInput = document.querySelector('input[name="item"]');
     const trInput = document.querySelector('input[name="tr"]');
     
     // User data passed from controller
     const usersData = <?= json_encode($usersData ?? []) ?>;
+    const itemTexts = <?= json_encode($itemTexts ?? []) ?>;
     
     // Item data - we'll get this from the item_id select options
     // The item text should be in the option text
@@ -99,6 +107,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function isInclusionResult(value) {
+        return value === 'inclusao' || value === 'inclusão';
+    }
+
+    function formatInclusionItemCode(trValue) {
+        const digits = String(trValue || '').replace(/\D/g, '');
+        if (!digits) {
+            return '';
+        }
+
+        return digits.padStart(2, '0') + '.99';
+    }
+
+    function syncItemForInclusion() {
+        if (!resultadoSelect || !itemInput || !trInput || !isInclusionResult(resultadoSelect.value)) {
+            return;
+        }
+
+        const inclusionItemCode = formatInclusionItemCode(trInput.value);
+        if (inclusionItemCode) {
+            itemInput.value = inclusionItemCode;
+        }
+    }
+
+    function toggleItemIdSelectState() {
+        if (!resultadoSelect || !itemIdSelect) {
+            return;
+        }
+
+        const disableItemId = isInclusionResult(resultadoSelect.value);
+        itemIdSelect.disabled = disableItemId;
+
+        if (itemIdHelp) {
+            itemIdHelp.style.display = disableItemId ? '' : 'none';
+        }
+    }
+
     function updateItemAndTrFromItemId() {
         if (!itemIdSelect || !itemInput || !trInput) {
             return;
@@ -122,13 +167,29 @@ document.addEventListener('DOMContentLoaded', function() {
             itemText = dashMatch[1].trim();
         }
         
-        // Set the item field to the extracted item text
-        itemInput.value = itemText;
-        
         // Extract first two digits from the item text for TR
         const trMatch = itemText.match(/^(\d{2})/);
         if (trMatch) {
             trInput.value = trMatch[1];
+        }
+
+        if (resultadoSelect && isInclusionResult(resultadoSelect.value)) {
+            syncItemForInclusion();
+        } else {
+            // Set the item field to the extracted item text
+            itemInput.value = itemText;
+        }
+        
+        // Auto-fill item_modificada with item text when resultado is 'modificada'
+        const resultadoSelect = document.querySelector('select[name="resultado"]');
+        const itemModificadaField = document.getElementById('item-modificada-field');
+        if (resultadoSelect && resultadoSelect.value === 'modificada' && itemModificadaField && itemTexts) {
+            if (selectedItemId && itemTexts[selectedItemId]) {
+                if (!itemModificadaField.value || itemModificadaField.dataset.autoFilled === 'true') {
+                    itemModificadaField.value = itemTexts[selectedItemId];
+                    itemModificadaField.dataset.autoFilled = 'true';
+                }
+            }
         }
     }
     
@@ -144,7 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const wrapper = itemModificadaField.closest('.mb-3, .form-group') || itemModificadaField.parentElement;
         const resultadoValue = resultadoSelect.value;
-        const showField = resultadoValue === 'modificada' || resultadoValue === 'inclusao';
+        const showField = resultadoValue === 'modificada' || isInclusionResult(resultadoValue);
+
+        toggleItemIdSelectState();
         
         if (showField) {
             itemModificadaField.style.display = '';
@@ -154,15 +217,31 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Change label based on resultado
             if (itemModificadaLabel) {
-                if (resultadoValue === 'inclusao') {
+                if (isInclusionResult(resultadoValue)) {
                     itemModificadaLabel.textContent = 'Inclusão de novo item';
                 } else {
                     itemModificadaLabel.textContent = 'Item Modificada';
                 }
             }
+
+            if (isInclusionResult(resultadoValue)) {
+                syncItemForInclusion();
+            }
+            
+            // Auto-fill item_modificada with item text when resultado is 'modificada'
+            if (resultadoValue === 'modificada' && itemIdSelect && itemTexts) {
+                const selectedItemId = itemIdSelect.value;
+                if (selectedItemId && itemTexts[selectedItemId]) {
+                    if (!itemModificadaField.value || itemModificadaField.dataset.autoFilled === 'true') {
+                        itemModificadaField.value = itemTexts[selectedItemId];
+                        itemModificadaField.dataset.autoFilled = 'true';
+                    }
+                }
+            }
         } else {
             itemModificadaField.value = '';
             itemModificadaField.style.display = 'none';
+            itemModificadaField.dataset.autoFilled = 'false';
             if (wrapper) {
                 wrapper.style.display = 'none';
             }
@@ -192,6 +271,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if (itemIdSelect.value) {
             updateItemAndTrFromItemId();
         }
+    }
+
+    if (trInput) {
+        trInput.addEventListener('input', syncItemForInclusion);
+    }
+    
+    // Listen for resultado changes
+    if (resultadoSelect) {
+        resultadoSelect.addEventListener('change', toggleItemModificada);
+        toggleItemModificada();
+    }
+    
+    // Listen for item_id changes to update item_modificada when resultado is 'modificada'
+    if (itemIdSelect) {
+        itemIdSelect.addEventListener('change', function() {
+            if (resultadoSelect && resultadoSelect.value === 'modificada') {
+                const selectedItemId = this.value;
+                if (selectedItemId && itemTexts[selectedItemId]) {
+                    itemModificadaField.value = itemTexts[selectedItemId];
+                    itemModificadaField.dataset.autoFilled = 'true';
+                }
+            }
+        });
+    }
+    
+    // Mark as manually modified if user types in the field
+    if (itemModificadaField) {
+        itemModificadaField.addEventListener('input', function() {
+            this.dataset.autoFilled = 'false';
+        });
     }
 });
 </script>
