@@ -81,7 +81,7 @@ class ItemsControllerTest extends TestCase
         $relator = new User([
             'id' => 3,
             'role' => 'relator',
-            'username' => 'relator'
+            'username' => 'grupo1'
         ]);
         
         // Event 2: Item 2 has a vote by admin (user 1), but not by relator (user 3).

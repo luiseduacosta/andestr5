@@ -16,7 +16,7 @@ class VotacoesController extends AppController
     private function agentDebugLog(string $location, string $message, array $data, string $hypothesisId): void
     {
         // #region agent log
-        file_put_contents(
+        @file_put_contents(
             '/home/luis/html/andestr5/.cursor/debug-bc0914.log',
             json_encode([
                 'sessionId' => 'bc0914',
@@ -774,8 +774,7 @@ class VotacoesController extends AppController
         }
 
         // Calcular minoria para destaque no GET
-        $destaqueCalculado = false;
-        $this->set(compact('item', 'destaqueCalculado'));
+        $this->set(compact('item'));
     }
 
     /**
@@ -961,7 +960,6 @@ class VotacoesController extends AppController
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
         $identity = $this->Authentication->getIdentity();
         $trInput = $this->request->getQuery('trs');
-        $items = [];
         $trList = [];
         $userGrupo = null;
         if ($identity && $identity->role === 'relator') {

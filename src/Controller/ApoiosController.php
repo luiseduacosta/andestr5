@@ -61,7 +61,7 @@ class ApoiosController extends AppController
         if (empty($eventoId)) {
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('Evento não especificado'));
         }
-        $tr = $this->request->getQuery('tr');
+        $tr = $this->request->getQuery('tr') ?: $tr;
         if (empty($tr)) {
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não especificado'));
         }
@@ -98,7 +98,6 @@ class ApoiosController extends AppController
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
-            debug($apoio);
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();

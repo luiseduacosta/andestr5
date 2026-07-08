@@ -47,7 +47,7 @@ class ItemsController extends AppController
         $identity = $this->Authentication->getIdentity();
         if ($identity && $identity->role === 'relator') {
             $query->where(['OR' => [
-                ['Items.item NOT LIKE' => '%99'],
+                ['Items.item NOT LIKE' => '%.99'],
                 ['Items.user_id' => $identity->id]
             ]]);
         }
@@ -65,7 +65,7 @@ class ItemsController extends AppController
         }
         if ($identity && $identity->role === 'relator') {
             $trOptionsQuery->where(['OR' => [
-                ['Items.item NOT LIKE' => '%99'],
+                ['Items.item NOT LIKE' => '%.99'],
                 ['Items.user_id' => $identity->id]
             ]]);
         }

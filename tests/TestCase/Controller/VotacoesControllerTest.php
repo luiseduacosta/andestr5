@@ -139,8 +139,6 @@ class VotacoesControllerTest extends TestCase
             'user_id' => 3,
             'grupo' => 2,
             'tr' => 2,
-            'tr_suprimida' => 0,
-            'tr_aprovada' => 1,
             'item_id' => 2,
             'item' => 'Item New',
             'resultado' => 'aprovada',
@@ -187,8 +185,6 @@ class VotacoesControllerTest extends TestCase
             'user_id' => 3,
             'grupo' => 1,
             'tr' => 1,
-            'tr_suprimida' => 0,
-            'tr_aprovada' => 1,
             'item_id' => 1,
             'resultado' => 'aprovada',
             'votacao' => '15/0/0',
@@ -243,10 +239,8 @@ class VotacoesControllerTest extends TestCase
         $data = [
             'grupo' => 2,
             'tr' => 2,
-            'tr_suprimida' => 0,
-            'tr_aprovada' => 1,
             'item_id' => 4, // Unauthorized item
-            'item' => 'Item 99',
+            'item' => '04.99',
             'resultado' => 'aprovada',
             'votacao' => '15/0/0',
             'item_modificada' => '',
@@ -276,27 +270,26 @@ class VotacoesControllerTest extends TestCase
             'Auth' => $relator,
             'selected_evento_id' => 1
         ]);
-        $this->get('/votacoes/report');
+        $this->get('/votacoes/relatorio');
         $this->assertResponseOk();
-        $this->assertResponseContains('Nenhuma TR selecionada');
+        $this->assertResponseContains('Relatório de Votações por TR');
 
         // 2. Query TR 1 on Active Event 1
-        $this->get('/votacoes/report?trs=1');
+        $this->get('/votacoes/relatorio?trs=1');
         $this->assertResponseOk();
         $this->assertResponseContains('TR 1');
         $this->assertResponseContains('Item 1');
         $this->assertResponseContains('Texto modificado 1'); // proposed modification
 
-        // 3. Query TR 2 on Active Event 2 (relator grupo1 vê itens mas não votacoes de grupo2)
+        // 3. Query TR 2 on Active Event 2 (relator grupo1 has no votes in evento 2 → no results)
         $this->session([
             'Auth' => $relator,
             'selected_evento_id' => 2
         ]);
-        $this->get('/votacoes/report?trs=2');
+        $this->get('/votacoes/relatorio?trs=2');
         $this->assertResponseOk();
-        $this->assertResponseContains('TR 2');
-        $this->assertResponseContains('Item 2');
-        $this->assertResponseNotContains('Texto modificado 2'); // filtered by grupo
+        // Relator grupo1 has no votes in evento 2, so TR 2 is not shown
+        $this->assertResponseNotContains('TR 2');
     }
 
     /**
@@ -315,11 +308,11 @@ class VotacoesControllerTest extends TestCase
         // GET: Show TR items for voting
         $this->session([
             'Auth' => $relator,
-            'selected_evento_id' => 1
+            'selected_evento_id' => 2
         ]);
-        $this->get('/votacoes/votar-tr/1/1');
+        $this->get('/votacoes/votar-tr/1/3');
         $this->assertResponseOk();
-        $this->assertResponseContains('Item 1');
+        $this->assertResponseContains('Item 3');
         $this->assertResponseContains('Fase 1');
 
         // POST: Rejeitar TR → cria Votacao por item
@@ -330,13 +323,13 @@ class VotacoesControllerTest extends TestCase
         ];
         $this->enableCsrfToken();
         $this->enableSecurityToken();
-        $this->post('/votacoes/votar-tr/1/1', $data);
+        $this->post('/votacoes/votar-tr/1/3', $data);
         $this->assertRedirect(['action' => 'index']);
 
-        // Verify records were created with tr_suprimida=1
+        // Verify records were created with resultado='suprimida'
         $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
         $rejected = $votacoesTable->find()
-            ->where(['tr' => 1, 'user_id' => 3, 'resultado' => 'suprimida'])
+            ->where(['tr' => 3, 'user_id' => 3, 'resultado' => 'suprimida'])
             ->all();
         $this->assertNotEmpty($rejected);
         foreach ($rejected as $v) {
@@ -392,7 +385,6 @@ class VotacoesControllerTest extends TestCase
             'votacao' => '9/6/0',
             'item_modificada' => 'Texto modificado pelo grupo',
             'destaque_minoria' => 1,
-            'tr_aprovada' => 0,
             'observacoes' => 'Minoria destacada',
         ];
         $this->enableCsrfToken();
@@ -453,7 +445,6 @@ class VotacoesControllerTest extends TestCase
         $this->assertNotEmpty($aprovados);
         foreach ($aprovados as $v) {
             $this->assertEquals('15/0/0', $v->votacao);
-            $this->assertEquals(0, $v->tr_suprimida);
         }
     }
 
@@ -471,8 +462,6 @@ class VotacoesControllerTest extends TestCase
             'evento_id' => 1,
             'grupo' => 1,
             'tr' => 1,
-            'tr_suprimida' => 0,
-            'tr_aprovada' => 0,
             'item_id' => 1,
             'item' => 'Item 1',
             'resultado' => 'modificada',
@@ -493,7 +482,7 @@ class VotacoesControllerTest extends TestCase
             'Auth' => $relator,
             'selected_evento_id' => 1
         ]);
-        $this->get('/votacoes/report?trs=1');
+        $this->get('/votacoes/relatorio?trs=1');
         $this->assertResponseOk();
         $this->assertResponseContains('Destaque de Minoria');
     }
