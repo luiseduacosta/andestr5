@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (showField) {
             itemModificadaField.style.display = '';
+            itemModificadaField.setAttribute('required', 'required');
             if (wrapper) {
                 wrapper.style.display = '';
             }
@@ -132,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             itemModificadaField.value = '';
             itemModificadaField.style.display = 'none';
+            itemModificadaField.removeAttribute('required');
             if (wrapper) {
                 wrapper.style.display = 'none';
             }

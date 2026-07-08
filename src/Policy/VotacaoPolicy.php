@@ -82,21 +82,21 @@ class VotacaoPolicy
 
     public function canVotarTr(IdentityInterface $user): bool
     {
-        return $user->role === 'admin' || $user->role === 'relator';
+        return $user->role === 'relator';
     }
 
     public function canVotarItem(IdentityInterface $user): bool
     {
-        return $user->role === 'admin' || $user->role === 'relator';
+        return $user->role === 'relator';
     }
 
     public function canVotarRestantes(IdentityInterface $user): bool
     {
-        return $user->role === 'admin' || $user->role === 'relator';
+        return $user->role === 'relator';
     }
 
     public function canInserirItem(IdentityInterface $user): bool
     {
-        return $user->role === 'admin' || $user->role === 'relator';
+        return $user->role === 'relator';
     }
 }

@@ -116,7 +116,17 @@ class VotacoesTable extends Table
         $validator
             ->scalar('item_modificada')
             ->requirePresence('item_modificada', 'create')
-            ->allowEmptyString('item_modificada');
+            ->allowEmptyString('item_modificada')
+            ->add('item_modificada', 'requiredWhenModificada', [
+                'rule' => function ($value, $context) {
+                    $resultado = $context['data']['resultado'] ?? '';
+                    if ($resultado === 'modificada') {
+                        return !empty(trim((string)$value));
+                    }
+                    return true;
+                },
+                'message' => __('O campo "Item Modificada" é obrigatório quando o resultado é "Modificada".'),
+            ]);
 
         $validator
             ->dateTime('data')
@@ -126,40 +136,81 @@ class VotacoesTable extends Table
             ->scalar('observacoes')
             ->allowEmptyString('observacoes');
 
+        $validator
+            ->boolean('destaque_minoria')
+            ->allowEmptyString('destaque_minoria');
+
         return $validator;
     }
 
     /**
-     * KISS: TR está suprimida ⇔ todos os itens rejeitados.
+     * TR está suprimida ⇔ todos os itens da TR foram votados como 'suprimida'.
+     * Verifica que a quantidade de votos 'suprimida' é igual ao total de itens da TR.
      */
     public function isTrSuprimida(int $tr, int $eventoId): bool
     {
-        $votos = $this->find()
-            ->select(['resultado'])
-            ->distinct()
-            ->where(['tr' => $tr, 'evento_id' => $eventoId])
-            ->all();
+        // Total de itens na TR (excluindo .99)
+        $totalItens = $this->Items->find()
+            ->innerJoinWith('Apoios')
+            ->where([
+                'Apoios.evento_id' => $eventoId,
+                'Items.tr' => $tr,
+                'Items.item NOT LIKE' => '%.99',
+            ])
+            ->count();
 
-        return !$votos->isEmpty() && $votos->every(fn($v) => $v->resultado === 'Rejeitado');
-    }
-
-    /**
-     * KISS: TR aprovada sem modificações ⇔ todos aprovados E nenhum modificado.
-     */
-    public function isTrAprovada(int $tr, int $eventoId): bool
-    {
-        $votos = $this->find()
-            ->select(['resultado', 'item_modificada'])
-            ->where(['tr' => $tr, 'evento_id' => $eventoId])
-            ->all();
-
-        if ($votos->isEmpty()) {
+        if ($totalItens === 0) {
             return false;
         }
 
-        return $votos->every(fn($v) =>
-            $v->resultado === 'Aprovado' && ($v->item_modificada === '' || $v->item_modificada === null)
-        );
+        // Contar votos 'suprimida' na TR
+        $votosSuprimida = $this->find()
+            ->where([
+                'tr' => $tr,
+                'evento_id' => $eventoId,
+                'resultado' => 'suprimida',
+            ])
+            ->count();
+
+        return $votosSuprimida === $totalItens;
+    }
+
+    /**
+     * TR aprovada sem modificações ⇔ todos os itens foram votados como 'aprovada' sem modificação.
+     * Verifica que a quantidade de votos é igual ao total de itens da TR.
+     */
+    public function isTrAprovada(int $tr, int $eventoId): bool
+    {
+        // Total de itens na TR (excluindo .99)
+        $totalItens = $this->Items->find()
+            ->innerJoinWith('Apoios')
+            ->where([
+                'Apoios.evento_id' => $eventoId,
+                'Items.tr' => $tr,
+                'Items.item NOT LIKE' => '%.99',
+            ])
+            ->count();
+
+        if ($totalItens === 0) {
+            return false;
+        }
+
+        // Contar votos 'aprovada' sem modificação na TR
+        $votosAprovados = $this->find()
+            ->where([
+                'tr' => $tr,
+                'evento_id' => $eventoId,
+                'resultado' => 'aprovada',
+            ])
+            ->andWhere(function ($exp) {
+                return $exp->or([
+                    ['item_modificada' => ''],
+                    ['item_modificada IS' => null],
+                ]);
+            })
+            ->count();
+
+        return $votosAprovados === $totalItens;
     }
 
     /**

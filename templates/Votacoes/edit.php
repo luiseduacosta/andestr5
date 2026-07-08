@@ -133,6 +133,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 wrapper.style.display = '';
             }
             
+            // Toggle required attribute based on resultado
+            if (resultadoValue === 'modificada') {
+                itemModificadaField.setAttribute('required', 'required');
+            } else {
+                itemModificadaField.removeAttribute('required');
+            }
+            
             // Change label based on resultado
             if (itemModificadaLabel) {
                 if (isInclusionResult(resultadoValue)) {
@@ -160,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             itemModificadaField.value = '';
             itemModificadaField.style.display = 'none';
+            itemModificadaField.removeAttribute('required');
             itemModificadaField.dataset.autoFilled = 'false';
             if (wrapper) {
                 wrapper.style.display = 'none';

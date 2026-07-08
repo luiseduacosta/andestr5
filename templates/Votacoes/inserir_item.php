@@ -47,15 +47,12 @@
                 <legend><?= __('Votação do novo item') ?></legend>
                 <?php
                     echo $this->Form->control('resultado', [
-                        'options' => [
-                            'Aprovado' => __('Aprovado'),
-                            'Rejeitado' => __('Rejeitado'),
-                            'Modificado' => __('Aprovado com modificação'),
-                        ],
-                        'class' => 'form-select',
-                        'label' => ['class' => 'form-label'],
-                        'empty' => false,
+                        'type' => 'hidden',
+                        'value' => 'inclusão',
                     ]);
+                ?>
+                <p class="text-muted"><em><?= __('O resultado será registrado automaticamente como "inclusão".') ?></em></p>
+                <?php
                     echo $this->Form->control('votacao', [
                         'class' => 'form-control',
                         'label' => ['class' => 'form-label'],
