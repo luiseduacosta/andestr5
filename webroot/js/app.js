@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
             forceSync: true,
             autoDownloadFontAwesome: false,
             toolbar: [
-                'bold', 'italic', 'heading', '|',
+                'bold', 'italic', 'strikethrough', 'heading', '|',
                 'quote', 'unordered-list', 'ordered-list', '|',
                 'link', 'image', '|',
                 'preview', 'side-by-side', 'fullscreen', '|',

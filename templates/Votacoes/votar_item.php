@@ -104,6 +104,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     nativeSpellcheck: true,
                     forceSync: true,
                     autoDownloadFontAwesome: false,
+                    toolbar: [
+                        'bold', 'italic', 'strikethrough', 'heading', '|',
+                        'quote', 'unordered-list', 'ordered-list', '|',
+                        'link', 'image', '|',
+                        'preview', 'side-by-side', 'fullscreen', '|',
+                        'guide'
+                    ],
                     renderingConfig: {
                         singleLineBreaks: true,
                         codeSyntaxHighlighting: true,
