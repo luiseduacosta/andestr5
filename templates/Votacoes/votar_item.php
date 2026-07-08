@@ -105,7 +105,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     forceSync: true,
                     autoDownloadFontAwesome: false,
                     toolbar: [
-                        'bold', 'italic', 'strikethrough', 'heading', '|',
+                        'bold', 'italic', {
+                            name: 'strikethrough',
+                            action: EasyMDE.toggleStrikethrough,
+                            className: 'fa fa-strikethrough',
+                            title: 'Strikethrough'
+                        }, 'heading', '|',
                         'quote', 'unordered-list', 'ordered-list', '|',
                         'link', 'image', '|',
                         'preview', 'side-by-side', 'fullscreen', '|',
