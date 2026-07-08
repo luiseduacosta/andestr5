@@ -31,12 +31,12 @@ class FixEncodingCommand extends Command
 
     public function execute(Arguments $args, ConsoleIo $io)
     {
-        $table = TableRegistry::getTableLocator()->get('Items');
+        $table = TableRegistry::getTableLocator()->get('Apoios');
         $columnsToFix = $args->getOption('column');
         $dryRun = $args->getOption('dry-run');
 
         if ($columnsToFix === 'all') {
-            $columns = ['texto'];
+            $columns = ['autor', 'titulo', 'texto'];
         } else {
             $columns = [(string)$columnsToFix];
         }

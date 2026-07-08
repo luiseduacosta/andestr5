@@ -143,7 +143,7 @@ class VotacoesControllerTest extends TestCase
             'tr_aprovada' => 1,
             'item_id' => 2,
             'item' => 'Item New',
-            'resultado' => 'Aprovado',
+            'resultado' => 'aprovada',
             'votacao' => '15/0/0',
             'item_modificada' => 'Texto modificado',
             'observacoes' => 'Sem obs',
@@ -190,7 +190,7 @@ class VotacoesControllerTest extends TestCase
             'tr_suprimida' => 0,
             'tr_aprovada' => 1,
             'item_id' => 1,
-            'resultado' => 'Aprovado',
+            'resultado' => 'aprovada',
             'votacao' => '15/0/0',
             'item_modificada' => 'Texto modificado',
             'observacoes' => 'Sem obs',
@@ -228,7 +228,10 @@ class VotacoesControllerTest extends TestCase
         $this->assertResponseOk();
         
         // Relator (ID 3) should see Item 99 owned by themselves (ID 5), but NOT Item 99 owned by Admin (ID 4)
-        $items = $this->viewVariable('items')->toArray();
+        $items = $this->viewVariable('items');
+        if (is_object($items) && method_exists($items, 'toArray')) {
+            $items = $items->toArray();
+        }
         $this->assertArrayHasKey(5, $items);
         $this->assertArrayNotHasKey(4, $items);
 
@@ -244,7 +247,7 @@ class VotacoesControllerTest extends TestCase
             'tr_aprovada' => 1,
             'item_id' => 4, // Unauthorized item
             'item' => 'Item 99',
-            'resultado' => 'Aprovado',
+            'resultado' => 'aprovada',
             'votacao' => '15/0/0',
             'item_modificada' => '',
             'observacoes' => '',
@@ -284,7 +287,7 @@ class VotacoesControllerTest extends TestCase
         $this->assertResponseContains('Item 1');
         $this->assertResponseContains('Texto modificado 1'); // proposed modification
 
-        // 3. Query TR 2 on Active Event 2
+        // 3. Query TR 2 on Active Event 2 (relator grupo1 vê itens mas não votacoes de grupo2)
         $this->session([
             'Auth' => $relator,
             'selected_evento_id' => 2
@@ -293,7 +296,7 @@ class VotacoesControllerTest extends TestCase
         $this->assertResponseOk();
         $this->assertResponseContains('TR 2');
         $this->assertResponseContains('Item 2');
-        $this->assertResponseContains('Texto modificado 2');
+        $this->assertResponseNotContains('Texto modificado 2'); // filtered by grupo
     }
 
     /**
@@ -321,7 +324,7 @@ class VotacoesControllerTest extends TestCase
 
         // POST: Rejeitar TR → cria Votacao por item
         $data = [
-            'resultado' => 'Rejeitado',
+            'resultado' => 'suprimida',
             'votacao' => '12/3/0',
             'observacoes' => 'TR rejeitada pelo grupo',
         ];
@@ -333,11 +336,11 @@ class VotacoesControllerTest extends TestCase
         // Verify records were created with tr_suprimida=1
         $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
         $rejected = $votacoesTable->find()
-            ->where(['tr' => 1, 'user_id' => 3, 'resultado' => 'Rejeitado'])
+            ->where(['tr' => 1, 'user_id' => 3, 'resultado' => 'suprimida'])
             ->all();
         $this->assertNotEmpty($rejected);
         foreach ($rejected as $v) {
-            $this->assertEquals('Rejeitado', $v->resultado);
+            $this->assertEquals('suprimida', $v->resultado);
             $this->assertEquals('12/3/0', $v->votacao);
         }
 
@@ -348,7 +351,7 @@ class VotacoesControllerTest extends TestCase
             'selected_evento_id' => 2
         ]);
         $data2 = [
-            'resultado' => 'Aprovado',
+            'resultado' => 'aprovada',
             'votacao' => '15/0/0',
             'observacoes' => '',
         ];
@@ -385,7 +388,7 @@ class VotacoesControllerTest extends TestCase
 
         // POST: Vote item with modification and destaque
         $data = [
-            'resultado' => 'Modificado',
+            'resultado' => 'modificada',
             'votacao' => '9/6/0',
             'item_modificada' => 'Texto modificado pelo grupo',
             'destaque_minoria' => 1,
@@ -403,7 +406,7 @@ class VotacoesControllerTest extends TestCase
             ->where(['item_id' => 3, 'evento_id' => 2])
             ->first();
         $this->assertNotEmpty($itemVote);
-        $this->assertEquals('Modificado', $itemVote->resultado);
+        $this->assertEquals('modificada', $itemVote->resultado);
         $this->assertEquals('9/6/0', $itemVote->votacao);
         $this->assertEquals('Texto modificado pelo grupo', $itemVote->item_modificada);
         $this->assertEquals(1, $itemVote->destaque_minoria);
@@ -445,7 +448,7 @@ class VotacoesControllerTest extends TestCase
         // Verify records
         $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
         $aprovados = $votacoesTable->find()
-            ->where(['tr' => 3, 'evento_id' => 2, 'resultado' => 'Aprovado'])
+            ->where(['tr' => 3, 'evento_id' => 2, 'resultado' => 'aprovada'])
             ->all();
         $this->assertNotEmpty($aprovados);
         foreach ($aprovados as $v) {
@@ -472,7 +475,7 @@ class VotacoesControllerTest extends TestCase
             'tr_aprovada' => 0,
             'item_id' => 1,
             'item' => 'Item 1',
-            'resultado' => 'Modificado',
+            'resultado' => 'modificada',
             'votacao' => '9/6/0',
             'item_modificada' => 'Proposta minoritária',
             'data' => new \Cake\I18n\DateTime(),

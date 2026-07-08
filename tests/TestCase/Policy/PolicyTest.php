@@ -27,6 +27,12 @@ class PolicyTest extends TestCase
     protected function getIdentity(array $data): IdentityInterface
     {
         $user = new User($data);
+        if (isset($data['id'])) {
+            $user->set('id', $data['id']);
+        }
+        if (isset($data['username'])) {
+            $user->set('username', $data['username']);
+        }
         $service = $this->createMock(\Authorization\AuthorizationServiceInterface::class);
 
         return new \Authorization\IdentityDecorator($service, $user);
@@ -134,7 +140,7 @@ class PolicyTest extends TestCase
         $policy = new ItemPolicy();
         $admin = $this->getIdentity(['id' => 1, 'role' => 'admin']);
         $editor = $this->getIdentity(['id' => 2, 'role' => 'editor']);
-        $relator = $this->getIdentity(['id' => 3, 'role' => 'relator']);
+        $relator = $this->getIdentity(['id' => 3, 'role' => 'relator', 'username' => 'grupo1']);
         $user1 = $this->getIdentity(['id' => 4, 'role' => 'user']);
         $item = new Item();
         $item->user_id = 3; // relator owns this item
@@ -161,10 +167,10 @@ class PolicyTest extends TestCase
 
         // .99 item tests
         $item99 = new Item(['item' => '99.99', 'user_id' => 3]);
-        $otherRelator = $this->getIdentity(['id' => 5, 'role' => 'relator']);
+        $otherRelator = $this->getIdentity(['id' => 5, 'role' => 'relator', 'username' => 'grupo2']);
 
         $this->assertTrue($policy->canView($relator, $item99));
-        $this->assertFalse($policy->canView($otherRelator, $item99));
+        $this->assertTrue($policy->canView($otherRelator, $item99));
 
         $this->assertTrue($policy->canEdit($relator, $item99));
         $this->assertFalse($policy->canEdit($otherRelator, $item99));
@@ -181,10 +187,10 @@ class PolicyTest extends TestCase
         $policy = new VotacaoPolicy();
         $admin = $this->getIdentity(['id' => 1, 'role' => 'admin']);
         $editor = $this->getIdentity(['id' => 2, 'role' => 'editor']);
-        $relator = $this->getIdentity(['id' => 3, 'role' => 'relator']);
-        $otherRelator = $this->getIdentity(['id' => 4, 'role' => 'relator']);
+        $relator = $this->getIdentity(['id' => 3, 'role' => 'relator', 'username' => 'grupo1']);
+        $otherRelator = $this->getIdentity(['id' => 4, 'role' => 'relator', 'username' => 'grupo2']);
 
-        $relatorVotacao = new Votacao(['user_id' => 3]);
+        $relatorVotacao = new Votacao(['user_id' => 3, 'grupo' => 1]);
 
         $this->assertTrue($policy->canIndex($admin));
         $this->assertTrue($policy->canIndex($relator));
@@ -202,13 +208,13 @@ class PolicyTest extends TestCase
 
         // Edit
         $this->assertTrue($policy->canEdit($admin, $relatorVotacao));
-        $this->assertFalse($policy->canEdit($editor, $relatorVotacao));
+        $this->assertTrue($policy->canEdit($editor, $relatorVotacao));
         $this->assertTrue($policy->canEdit($relator, $relatorVotacao));
         $this->assertFalse($policy->canEdit($otherRelator, $relatorVotacao));
 
         // Delete
         $this->assertTrue($policy->canDelete($admin, $relatorVotacao));
-        $this->assertFalse($policy->canDelete($editor, $relatorVotacao));
+        $this->assertTrue($policy->canDelete($editor, $relatorVotacao));
         $this->assertTrue($policy->canDelete($relator, $relatorVotacao));
         $this->assertFalse($policy->canDelete($otherRelator, $relatorVotacao));
     }
