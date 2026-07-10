@@ -487,6 +487,135 @@ class VotacoesControllerTest extends TestCase
         $this->assertResponseContains('Destaque de Minoria');
     }
 
+    /**
+     * Test votarItem authorization constraints.
+     *
+     * @return void
+     */
+    public function testVotarItemAuthorization(): void
+    {
+        // 1. Non-relator user (admin) visits votar-item -> access denied (redirects to index)
+        $admin = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session([
+            'Auth' => $admin,
+            'selected_evento_id' => 2
+        ]);
+        $this->get('/votacoes/votar-item/3');
+        $this->assertRedirect(['action' => 'index']);
+
+        // 2. Relator tries to vote on another relator's *.99 item (ForbiddenException)
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 2
+        ]);
+        
+        // Item 4 is '04.99' owned by User 1 (Admin). Relator (User 3) should be forbidden.
+        $this->get('/votacoes/votar-item/4');
+        $this->assertResponseCode(403);
+    }
+
+    /**
+     * Test inserirItem successfully creates a new item and vote without validation failure.
+     *
+     * @return void
+     */
+    public function testInserirItemSuccess(): void
+    {
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+        // Evento 2, Apoio 2 exists (so we can vote on TR 2)
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 2
+        ]);
+
+        $data = [
+            'texto' => 'Novo item de inclusao test',
+            'votacao' => '10/5/0',
+            'destaque_minoria' => 0,
+            'observacoes' => 'Inserido com sucesso',
+        ];
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        
+        // POST to inserir-item/1/2 (grupo 1, TR 2)
+        $this->post('/votacoes/inserir-item/1/2', $data);
+        $this->assertRedirect(['action' => 'index']);
+
+        // Check if the item and vote were created
+        $itemsTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Items');
+        $newItem = $itemsTable->find()->where(['texto' => 'Novo item de inclusao test'])->first();
+        $this->assertNotEmpty($newItem);
+        $this->assertEquals('02.99', $newItem->item);
+
+        $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
+        $newVote = $votacoesTable->find()->where(['item_id' => $newItem->id])->first();
+        $this->assertNotEmpty($newVote);
+        $this->assertEquals('inclusão', $newVote->resultado);
+        $this->assertEquals('10/5/0', $newVote->votacao);
+    }
+
+    /**
+     * Test findItensSemVoto filters correctly on group level.
+     *
+     * @return void
+     */
+    public function testFindItensSemVotoGroupBased(): void
+    {
+        $votacoesTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Votacoes');
+        
+        // Create another user in the same group (grupo 1) but with different user_id
+        $relator1 = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+        
+        // Log in as relator1 and vote on Item 3 in Evento 2
+        $vote = $votacoesTable->newEntity([
+            'user_id' => 3,
+            'evento_id' => 2,
+            'grupo' => 1,
+            'tr' => 3,
+            'item_id' => 3,
+            'item' => 'Item 3',
+            'resultado' => 'aprovada',
+            'votacao' => '15/0/0',
+            'item_modificada' => '',
+            'data' => new \Cake\I18n\DateTime(),
+            'destaque_minoria' => false,
+        ]);
+        $votacoesTable->save($vote);
+
+        // Now find remaining items for another user in the same group (grupo 1)
+        // Even though this user has id = 99, they belong to grupo1 (username = grupo1).
+        $options = [
+            'grupo' => 1,
+            'tr' => 3,
+            'evento_id' => 2,
+            'user_id' => 99,
+        ];
+        
+        $query = $votacoesTable->findItensSemVoto($votacoesTable->Items->find(), $options);
+        $itensRestantes = $query->all();
+        
+        // Item 3 is already voted by group 1, so it should NOT be in remaining items.
+        // TR 3 has Item 3. Since Item 3 has a vote from group 1, remaining items should be empty.
+        $this->assertTrue($itensRestantes->isEmpty(), 'Item 3 should be filtered out because group 1 already voted on it.');
+    }
+
     private function ativarEvento(int $id): void
     {
         \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos')

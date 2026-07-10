@@ -11,7 +11,10 @@ namespace App\Controller;
 class VotacoesController extends AppController
 {
     /**
-     * @param array<string, mixed> $data
+     * @param string $location Calling location for the log.
+     * @param string $message Log message.
+     * @param array<string, mixed> $data Associated data.
+     * @param string $hypothesisId Hypothesis identifier.
      */
     private function agentDebugLog(string $location, string $message, array $data, string $hypothesisId): void
     {
@@ -717,9 +720,18 @@ class VotacoesController extends AppController
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
         $identity = $this->Authentication->getIdentity();
 
+        if (!$identity || $identity->role !== 'relator') {
+            $this->Flash->error(__('Acesso negado.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
         $itemId = (int)$itemId;
         if (!$itemId || !$selectedEventoId) {
             $this->Flash->error(__('Parâmetros inválidos.'));
+            return $this->redirect(['action' => 'index']);
+        }
+
+        if (!$this->ensureRelatorCanAccessItem($identity, $itemId, $selectedEventoId)) {
             return $this->redirect(['action' => 'index']);
         }
 
@@ -740,11 +752,6 @@ class VotacoesController extends AppController
         if ($this->request->is('post')) {
             $data = $this->request->getData();
 
-            if (!$identity || $identity->role !== 'relator') {
-                $this->Flash->error(__('Acesso negado.'));
-                return $this->redirect(['action' => 'index']);
-            }
-
             $existingVote = $this->findExistingVoteForGroupItem(
                 (int)$selectedEventoId,
                 (int)substr((string)$identity->username, 5),
@@ -764,6 +771,8 @@ class VotacoesController extends AppController
             $votacao->tr = $item->tr;
             $votacao->item_id = $item->id;
             $votacao->item = $item->item;
+            $votacao->item_modificada = $data['item_modificada'] ?? '';
+            $votacao->destaque_minoria = !empty($data['destaque_minoria']);
             $votacao->data = new \Cake\I18n\DateTime();
 
             if ($this->Votacoes->save($votacao)) {
@@ -773,7 +782,6 @@ class VotacoesController extends AppController
             $this->Flash->error(__('Erro ao salvar a votação do item. Tente novamente.'));
         }
 
-        // Calcular minoria para destaque no GET
         $this->set(compact('item'));
     }
 
@@ -904,6 +912,9 @@ class VotacoesController extends AppController
 
         if ($this->request->is('post')) {
             $data = $this->request->getData();
+            if (!isset($data['item_modificada'])) {
+                $data['item_modificada'] = '';
+            }
 
             // Criar o novo Item
             $itemCode = $this->buildInclusionItemCode($tr);
@@ -931,6 +942,7 @@ class VotacoesController extends AppController
             $votacao->item = $novoItem->item;
             $votacao->resultado = 'inclusão';
             $votacao->item_modificada = $data['item_modificada'] ?? '';
+            $votacao->destaque_minoria = !empty($data['destaque_minoria']);
             $votacao->data = new \Cake\I18n\DateTime();
 
             if ($this->Votacoes->save($votacao)) {
@@ -1009,7 +1021,8 @@ class VotacoesController extends AppController
             
             $this->set(compact('votacoes', 'trInput', 'trList'));
         } else {
-            $this->set(compact('trInput', 'trList'));
+            $votacoes = collection([]);
+            $this->set(compact('votacoes', 'trInput', 'trList'));
         }
     }
 }

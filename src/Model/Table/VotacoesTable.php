@@ -231,13 +231,13 @@ class VotacoesTable extends Table
             return $query->where(['1 = 0']);
         }
 
-        // Subquery: IDs dos itens que JÁ têm voto deste usuário neste evento
+        // Subquery: IDs dos itens que JÁ têm voto deste grupo neste evento
         $votados = $this->find()
             ->select(['Votacoes.item_id'])
             ->distinct()
             ->where([
                 'Votacoes.evento_id' => $eventoId,
-                'Votacoes.user_id' => $userId,
+                'Votacoes.grupo' => $grupo,
             ]);
 
         return $this->Items->find()
