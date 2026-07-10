@@ -70,11 +70,21 @@ if (!empty($votacoes)) {
 
     <div class="col-lg-8 col-12 mb-4">
         <?php if (!empty($trList) && sizeof($votacoes) > 0): ?>
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h4 class="fw-semibold mb-0"><?= __('Resultado da Compilação') ?></h4>
-                <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">
-                    <?= __('TRs Consultadas: {0}', implode(', ', $trList)) ?>
-                </span>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <?= $this->Html->link(
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-1.5" viewBox="0 0 16 16">' .
+                        '<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>' .
+                        '<path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>' .
+                        '</svg>' . __('Baixar Markdown'),
+                        ['action' => 'relatorio', '?' => ['trs' => $trInput, 'download' => 'markdown']],
+                        ['class' => 'btn btn-outline-primary btn-sm rounded-pill shadow-sm d-flex align-items-center px-3 py-1.5', 'escape' => false]
+                    ) ?>
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill mb-0">
+                        <?= __('TRs Consultadas: {0}', implode(', ', $trList)) ?>
+                    </span>
+                </div>
             </div>
             <?php foreach ($trList as $trNum): ?>
                 <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">

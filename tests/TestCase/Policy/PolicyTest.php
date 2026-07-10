@@ -170,7 +170,7 @@ class PolicyTest extends TestCase
         $otherRelator = $this->getIdentity(['id' => 5, 'role' => 'relator', 'username' => 'grupo2']);
 
         $this->assertTrue($policy->canView($relator, $item99));
-        $this->assertTrue($policy->canView($otherRelator, $item99));
+        $this->assertFalse($policy->canView($otherRelator, $item99));
 
         $this->assertTrue($policy->canEdit($relator, $item99));
         $this->assertFalse($policy->canEdit($otherRelator, $item99));

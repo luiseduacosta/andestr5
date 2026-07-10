@@ -16,11 +16,19 @@ class ItemPolicy
         return true;
     }
 
-    /**
-     * Check if the user can view an item.
-     */
     public function canView(IdentityInterface $user, Item $resource): bool
     {
+        if ($user->role === 'admin' || $user->role === 'editor') {
+            return true;
+        }
+
+        // Relators cannot view other relators' `.99` items
+        if ($user->role === 'relator') {
+            if (str_ends_with((string)$resource->item, '.99') && (int)$resource->user_id !== (int)$user->id) {
+                return false;
+            }
+        }
+
         return true;
     }
 

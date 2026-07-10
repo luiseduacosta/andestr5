@@ -293,6 +293,38 @@ class VotacoesControllerTest extends TestCase
     }
 
     /**
+     * Test report action compiles items and votes correctly in Markdown download format.
+     *
+     * @return void
+     */
+    public function testReportDownload(): void
+    {
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 1
+        ]);
+        $this->get('/votacoes/relatorio?trs=1&download=markdown');
+        $this->assertResponseOk();
+        $this->assertHeader('Content-Disposition', 'attachment; filename="relatorio.md"');
+        $this->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
+        
+        $this->assertResponseContains('# Evento 1');
+        $this->assertResponseContains('- **Data:** 2026-06-19');
+        $this->assertResponseContains('- **Local:** Local 1');
+        $this->assertResponseContains('- **Relator:** grupo1');
+        $this->assertResponseContains('- **Grupo:** G1');
+        $this->assertResponseContains('## TR 1');
+        $this->assertResponseContains('### Item Item 1');
+        $this->assertResponseContains('| Grupo | Voto | Resultado | Relator |');
+    }
+
+    /**
      * Test Fase 1 — votarTr: rejeição da TR inteira.
      *
      * @return void
@@ -614,6 +646,59 @@ class VotacoesControllerTest extends TestCase
         // Item 3 is already voted by group 1, so it should NOT be in remaining items.
         // TR 3 has Item 3. Since Item 3 has a vote from group 1, remaining items should be empty.
         $this->assertTrue($itensRestantes->isEmpty(), 'Item 3 should be filtered out because group 1 already voted on it.');
+    }
+
+    /**
+     * Test add fails gracefully when applyInclusionItem fails (e.g. invalid TR/support)
+     * and shows a detailed validation error message on invalid votacao format.
+     *
+     * @return void
+     */
+    public function testAddGracefulFailureAndDetailedValidation(): void
+    {
+        $user = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 2
+        ]);
+
+        // 1. applyInclusionItem fails (e.g., TR 999 does not exist)
+        // This should not crash with undefined variables in add.php view
+        $dataInvalidTr = [
+            'grupo' => 1,
+            'tr' => 999, // Non-existent TR support
+            'resultado' => 'inclusao',
+            'votacao' => '15/0/0',
+            'item_modificada' => 'Novo item',
+        ];
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/votacoes/add', $dataInvalidTr);
+        $this->assertResponseOk(); // Renders the form again (no redirect, no crash)
+
+        // 2. Votacao formatting validation failure displays detailed message
+        $dataInvalidVote = [
+            'grupo' => 1,
+            'tr' => 2,
+            'item_id' => 2,
+            'item' => 'Item 2',
+            'resultado' => 'aprovada',
+            'votacao' => 'invalid-format', // invalid format
+            'item_modificada' => '',
+        ];
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 2
+        ]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/votacoes/add', $dataInvalidVote);
+        $this->assertResponseOk(); // Form re-renders
+        $this->assertResponseContains('O campo votação deve estar no formato XX/XX/XX (ex: 15/6/0).');
     }
 
     private function ativarEvento(int $id): void

@@ -50,7 +50,24 @@ class ApoiosController extends AppController
     public function view($id = null)
     {
         $this->Authorization->skipAuthorization();
-        $apoio = $this->Apoios->get($id, contain: ['Eventos', 'Gts', 'Items' => ['sort' => ['Items.item' => 'ASC']]]);
+        $identity = $this->Authentication->getIdentity();
+        
+        $itemsQueryBuilder = function ($query) use ($identity) {
+            $query->orderBy(['Items.item' => 'ASC']);
+            if ($identity && $identity->role === 'relator') {
+                $query->where(['OR' => [
+                    ['Items.item NOT LIKE' => '%.99'],
+                    ['Items.user_id' => $identity->id],
+                ]]);
+            }
+            return $query;
+        };
+
+        $apoio = $this->Apoios->get($id, contain: [
+            'Eventos',
+            'Gts',
+            'Items' => $itemsQueryBuilder
+        ]);
         $this->set(compact('apoio'));
     }
 
@@ -66,7 +83,29 @@ class ApoiosController extends AppController
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não especificado'));
         }
 
-        $apoio = $this->Apoios->find()->contain(['Eventos', 'Items'])->where(['Apoios.numero_texto' => $tr, 'Apoios.evento_id' => $eventoId])->first();
+        $identity = $this->Authentication->getIdentity();
+        $itemsQueryBuilder = function ($query) use ($identity) {
+            $query->orderBy(['Items.item' => 'ASC']);
+            if ($identity && $identity->role === 'relator') {
+                $query->where(['OR' => [
+                    ['Items.item NOT LIKE' => '%.99'],
+                    ['Items.user_id' => $identity->id],
+                ]]);
+            }
+            return $query;
+        };
+
+        $apoio = $this->Apoios->find()
+            ->contain([
+                'Eventos',
+                'Items' => $itemsQueryBuilder
+            ])
+            ->where([
+                'Apoios.numero_texto' => $tr,
+                'Apoios.evento_id' => $eventoId
+            ])
+            ->first();
+
         if (!$apoio) {
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não encontrado'));
         }
@@ -97,7 +136,20 @@ class ApoiosController extends AppController
 
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+            
+            $errors = [];
+            if ($apoio->getErrors()) {
+                foreach ($apoio->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('The apoio could not be saved: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+            }
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
@@ -126,7 +178,20 @@ class ApoiosController extends AppController
 
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+            
+            $errors = [];
+            if ($apoio->getErrors()) {
+                foreach ($apoio->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('The apoio could not be saved: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+            }
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();

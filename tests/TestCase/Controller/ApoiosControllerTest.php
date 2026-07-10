@@ -26,6 +26,7 @@ class ApoiosControllerTest extends TestCase
         'app.Apoios',
         'app.Eventos',
         'app.Users',
+        'app.Items',
     ];
 
     /**
@@ -118,5 +119,35 @@ class ApoiosControllerTest extends TestCase
         $newApoio = $apoiosTable->find()->order(['id' => 'DESC'])->first();
         $this->assertNotEmpty($newApoio);
         $this->assertEquals(2, $newApoio->evento_id);
+    }
+
+    /**
+     * Test viewtr filters out other users' private .99 items for a relator.
+     *
+     * @return void
+     */
+    public function testViewtrFilteredForRelator(): void
+    {
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 2
+        ]);
+
+        // Access viewtr for TR 2 (Apoio ID 2, Event 2)
+        // Apoio 2 has:
+        // - Item 2: regular item (viewable)
+        // - Item 5: .99 item owned by user 3 (viewable)
+        // - Item 4: .99 item owned by user 1 (NOT viewable by relator user 3)
+        $this->get('/apoios/viewtr?evento_id=2&tr=2');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Texto Item 2');
+        $this->assertResponseContains('05.99');
+        $this->assertResponseNotContains('04.99');
     }
 }

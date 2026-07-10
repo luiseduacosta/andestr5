@@ -97,7 +97,6 @@ class ItemsController extends AppController
      */
     public function view($id = null)
     {
-        $this->Authorization->skipAuthorization();
         $identity = $this->Authentication->getIdentity();
         $votacoesContain = [
             'Users',
@@ -139,10 +138,23 @@ class ItemsController extends AppController
 
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            
+            $errors = [];
+            if ($item->getErrors()) {
+                foreach ($item->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('The item could not be saved: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            }
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
-        $apoiosQuery = $this->Items->Apoios->find('list', ['keyField' => 'id', 'valueField' => 'numero_texto']);
+        $apoiosQuery = $this->Items->Apoios->find('list');
         if ($selectedEventoId) {
             $apoiosQuery->where(['Apoios.evento_id' => $selectedEventoId]);
         }
@@ -168,7 +180,20 @@ class ItemsController extends AppController
 
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            
+            $errors = [];
+            if ($item->getErrors()) {
+                foreach ($item->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('The item could not be saved: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            }
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
         $apoiosQuery = $this->Items->Apoios->find('list');

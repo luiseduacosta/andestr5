@@ -123,7 +123,28 @@ class ItemsControllerTest extends TestCase
      */
     public function testView(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        // 1. Relator can view regular items
+        $this->session(['Auth' => $relator]);
+        $this->get('/items/view/2');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Item 2');
+
+        // 2. Relator can view their own .99 items (Item 5 is owned by user 3)
+        $this->session(['Auth' => $relator]);
+        $this->get('/items/view/5');
+        $this->assertResponseOk();
+        $this->assertResponseContains('05.99');
+
+        // 3. Relator cannot view another user's .99 items (Item 4 is owned by user 1)
+        $this->session(['Auth' => $relator]);
+        $this->get('/items/view/4');
+        $this->assertResponseCode(403); // Forbidden
     }
 
     /**
@@ -134,7 +155,43 @@ class ItemsControllerTest extends TestCase
      */
     public function testAdd(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->get('/items/add');
+        $this->assertResponseOk();
+
+        // Submit valid item
+        $data = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '02.99',
+            'texto' => 'New inclusion item text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/add', $data);
+        $this->assertRedirect(['action' => 'index']);
+
+        // Check validation error detailed reporting
+        $invalidData = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => 'way-too-long-item-code', // max 11 chars
+            'texto' => '', // empty not allowed
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/add', $invalidData);
+        $this->assertResponseOk();
+        // The validator returns error messages
+        $this->assertResponseContains('The item could not be saved:');
     }
 
     /**
@@ -145,7 +202,33 @@ class ItemsControllerTest extends TestCase
      */
     public function testEdit(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        // 1. Relator can edit their own item
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->get('/items/edit/5'); // Item 5 owned by user 3
+        $this->assertResponseOk();
+
+        $data = [
+            'apoio_id' => 2,
+            'tr' => 5,
+            'item' => '05.99',
+            'texto' => 'Updated item 5 text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/edit/5', $data);
+        $this->assertRedirect(['action' => 'index']);
+
+        // 2. Relator cannot edit other user's item
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->get('/items/edit/2'); // Item 2 owned by user 1
+        $this->assertResponseCode(403);
     }
 
     /**
@@ -156,6 +239,24 @@ class ItemsControllerTest extends TestCase
      */
     public function testDelete(): void
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $relator = new User([
+            'id' => 3,
+            'role' => 'relator',
+            'username' => 'grupo1'
+        ]);
+
+        // 1. Relator cannot delete other user's item
+        $this->session(['Auth' => $relator]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/delete/2'); // Item 2 owned by user 1
+        $this->assertResponseCode(403);
+
+        // 2. Relator can delete their own item
+        $this->session(['Auth' => $relator]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/delete/5'); // Item 5 owned by user 3
+        $this->assertRedirect(['action' => 'index']);
     }
 }

@@ -183,26 +183,40 @@ class VotacoesController extends AppController
                 $votacao->grupo = (int)substr((string)$identity->username, 5);
             }
 
+            $applySuccess = true;
             if ($this->isInclusionResult($resultado)) {
-                if (!$this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity)) {
-                    return;
+                $applySuccess = $this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity);
+            }
+
+            if ($applySuccess) {
+                if (!$this->ensureRelatorCanAccessItem($identity, $votacao->item_id, $selectedEventoId)) {
+                    return $this->redirect(['action' => 'index']);
+                }
+
+                if (empty($votacao->data)) {
+                    $votacao->data = new \Cake\I18n\DateTime();
+                }
+
+                if ($this->Votacoes->save($votacao)) {
+                    $this->Flash->success(__('The votacao has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                
+                $errors = [];
+                if ($votacao->getErrors()) {
+                    foreach ($votacao->getErrors() as $field => $fieldErrors) {
+                        foreach ($fieldErrors as $rule => $message) {
+                            $errors[] = $message;
+                        }
+                    }
+                }
+                if (!empty($errors)) {
+                    $this->Flash->error(__('The votacao could not be saved: {0}', implode(', ', array_unique($errors))));
+                } else {
+                    $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
                 }
             }
-
-            if (!$this->ensureRelatorCanAccessItem($identity, $votacao->item_id, $selectedEventoId)) {
-                return $this->redirect(['action' => 'index']);
-            }
-
-            if (empty($votacao->data)) {
-                $votacao->data = new \Cake\I18n\DateTime();
-            }
-
-            if ($this->Votacoes->save($votacao)) {
-                $this->Flash->success(__('The votacao has been saved.'));
-
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
         }
         $identity = $this->Authentication->getIdentity();
         // Get users with role and username for JavaScript
@@ -258,26 +272,40 @@ class VotacoesController extends AppController
                 $votacao->grupo = (int)substr((string)$identity->username, 5);
             }
 
+            $applySuccess = true;
             if ($this->isInclusionResult($resultado)) {
-                if (!$this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity, $originalResultado)) {
-                    return;
+                $applySuccess = $this->applyInclusionItem($votacao, $data, $selectedEventoId, $identity, $originalResultado);
+            }
+
+            if ($applySuccess) {
+                if (!$this->ensureRelatorCanAccessItem($identity, $votacao->item_id, $selectedEventoId, $originalGrupo)) {
+                    return $this->redirect(['action' => 'index']);
+                }
+
+                if (empty($votacao->data)) {
+                    $votacao->data = new \Cake\I18n\DateTime();
+                }
+
+                if ($this->Votacoes->save($votacao)) {
+                    $this->Flash->success(__('The votacao has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                
+                $errors = [];
+                if ($votacao->getErrors()) {
+                    foreach ($votacao->getErrors() as $field => $fieldErrors) {
+                        foreach ($fieldErrors as $rule => $message) {
+                            $errors[] = $message;
+                        }
+                    }
+                }
+                if (!empty($errors)) {
+                    $this->Flash->error(__('The votacao could not be saved: {0}', implode(', ', array_unique($errors))));
+                } else {
+                    $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
                 }
             }
-
-            if (!$this->ensureRelatorCanAccessItem($identity, $votacao->item_id, $selectedEventoId, $originalGrupo)) {
-                return $this->redirect(['action' => 'index']);
-            }
-
-            if (empty($votacao->data)) {
-                $votacao->data = new \Cake\I18n\DateTime();
-            }
-
-            if ($this->Votacoes->save($votacao)) {
-                $this->Flash->success(__('The votacao has been saved.'));
-
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The votacao could not be saved. Please, try again.'));
         }
         $identity = $this->Authentication->getIdentity();
         $users = $this->Votacoes->Users->find('list', limit: 50)->all();
@@ -696,7 +724,22 @@ class VotacoesController extends AppController
                     $this->Flash->success(__('Votação de supresão da TR {0} registrada em {1} itens.', $tr, count($entities)));
                     return $this->redirect(['action' => 'index']);
                 }
-                $this->Flash->error(__('Erro ao salvar a votação da TR. Tente novamente.'));
+                
+                $errors = [];
+                foreach ($entities as $entity) {
+                    if ($entity->getErrors()) {
+                        foreach ($entity->getErrors() as $field => $fieldErrors) {
+                            foreach ($fieldErrors as $rule => $message) {
+                                $errors[] = $message;
+                            }
+                        }
+                    }
+                }
+                if (!empty($errors)) {
+                    $this->Flash->error(__('Erro ao salvar a votação da TR: {0}', implode(', ', array_unique($errors))));
+                } else {
+                    $this->Flash->error(__('Erro ao salvar a votação da TR. Tente novamente.'));
+                }
             } else {
                 // TR não suprimida — nada registrado
                 $this->Flash->success(__('TR {0} aprovada. Prossiga para votação dos itens em discussão.', $tr));
@@ -779,10 +822,25 @@ class VotacoesController extends AppController
                 $this->Flash->success(__('Votação do item {0} registrada.', $item->item));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('Erro ao salvar a votação do item. Tente novamente.'));
+            
+            $errors = [];
+            if ($votacao->getErrors()) {
+                foreach ($votacao->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('Erro ao salvar a votação do item: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('Erro ao salvar a votação do item. Tente novamente.'));
+            }
+        } else {
+            $votacao = $this->Votacoes->newEmptyEntity();
         }
 
-        $this->set(compact('item'));
+        $this->set(compact('item', 'votacao'));
     }
 
     /**
@@ -854,7 +912,22 @@ class VotacoesController extends AppController
                 $this->Flash->success(__('Votação afirmativa registrada em {0} itens da TR {1}.', count($entities), $tr));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('Erro ao salvar a votação dos itens restantes. Tente novamente.'));
+            
+            $errors = [];
+            foreach ($entities as $entity) {
+                if ($entity->getErrors()) {
+                    foreach ($entity->getErrors() as $field => $fieldErrors) {
+                        foreach ($fieldErrors as $rule => $message) {
+                            $errors[] = $message;
+                        }
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('Erro ao salvar a votação dos itens restantes: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('Erro ao salvar a votação dos itens restantes. Tente novamente.'));
+            }
         }
 
         $this->set(compact('itensRestantes', 'grupo', 'tr'));
@@ -954,11 +1027,26 @@ class VotacoesController extends AppController
             if ($novoItem->id) {
                 $this->Votacoes->Items->delete($novoItem);
             }
-            $this->Flash->error(__('Erro ao salvar a votação do novo item. Tente novamente.'));
+            
+            $errors = [];
+            if ($votacao->getErrors()) {
+                foreach ($votacao->getErrors() as $field => $fieldErrors) {
+                    foreach ($fieldErrors as $rule => $message) {
+                        $errors[] = $message;
+                    }
+                }
+            }
+            if (!empty($errors)) {
+                $this->Flash->error(__('Erro ao salvar a votação do novo item: {0}', implode(', ', array_unique($errors))));
+            } else {
+                $this->Flash->error(__('Erro ao salvar a votação do novo item. Tente novamente.'));
+            }
+        } else {
+            $votacao = $this->Votacoes->newEmptyEntity();
         }
 
         $itemCode = $this->buildInclusionItemCode($tr);
-        $this->set(compact('grupo', 'tr', 'itemCode', 'apoioId', 'apoioItem'));
+        $this->set(compact('grupo', 'tr', 'itemCode', 'apoioId', 'apoioItem', 'votacao'));
     }
 
     /**
@@ -1008,16 +1096,111 @@ class VotacoesController extends AppController
                 ->order(['Votacoes.tr' => 'ASC', 'Votacoes.item' => 'ASC'])
                 ->all();
             
-            // Get unique TRs that actually have votacoes
-            $trsWithVotacoes = [];
-            foreach ($votacoes as $votacao) {
-                if (!in_array($votacao->tr, $trsWithVotacoes)) {
-                    $trsWithVotacoes[] = $votacao->tr;
-                }
-            }
+            // Retain original queried $trList so template warnings can display correctly
             
-            // Update trList to only include TRs that have votacoes
-            $trList = $trsWithVotacoes;
+            $download = $this->request->getQuery('download');
+            if ($download === 'markdown') {
+                $evento = $this->Votacoes->Eventos->find()->where(['id' => $selectedEventoId])->first();
+                
+                $markdownContent = "# Relatório de Votações por TR\n\n";
+                if ($evento) {
+                    $markdownContent = sprintf(
+                        "# %s\n- **Data:** %s\n- **Local:** %s\n",
+                        $evento->nome,
+                        $evento->data,
+                        $evento->local
+                    );
+                }
+                if ($identity && $identity->role === 'relator') {
+                    $markdownContent .= sprintf("- **Relator:** %s\n- **Grupo:** G%d\n", $identity->username, $userGrupo);
+                }
+                $markdownContent .= sprintf("- **TRs Consultadas:** %s\n\n", implode(', ', $trList));
+                $markdownContent .= "---\n\n";
+                
+                $groupedItems = [];
+                foreach ($votacoes as $votacao) {
+                    $tr = (int)$votacao->tr;
+                    $itemKey = (string)($votacao->item_id ?: $votacao->item ?: uniqid('item_', true));
+
+                    if (!isset($groupedItems[$tr][$itemKey])) {
+                        $groupedItems[$tr][$itemKey] = [
+                            'codigo' => $votacao->item ?: ($votacao->votacao_item->item ?? ''),
+                            'texto' => $votacao->votacao_item->texto ?? '',
+                            'isAdded' => !empty($votacao->item) && str_ends_with($votacao->item, '99'),
+                            'votes' => [],
+                        ];
+                    }
+
+                    $groupedItems[$tr][$itemKey]['votes'][] = $votacao;
+                }
+                
+                foreach ($trList as $trNum) {
+                    $markdownContent .= "## TR " . $trNum . "\n\n";
+                    if (empty($groupedItems[$trNum])) {
+                        $markdownContent .= "Nenhuma votação registrada para a TR " . $trNum . " no evento ativo.\n\n";
+                    } else {
+                        foreach ($groupedItems[$trNum] as $itemData) {
+                            $hasInclusaoVote = false;
+                            $inclusaoTexto = $itemData['texto'];
+                            foreach ($itemData['votes'] as $vote) {
+                                if (strtolower((string)$vote->resultado) === 'inclusão' || strtolower((string)$vote->resultado) === 'inclusao') {
+                                    $hasInclusaoVote = true;
+                                    if (!empty($vote->item_modificada)) {
+                                        $inclusaoTexto = $vote->item_modificada;
+                                    }
+                                    break;
+                                }
+                            }
+                            
+                            $itemTitle = "### Item " . $itemData['codigo'];
+                            if ($itemData['isAdded']) {
+                                $itemTitle .= " (Item Adicionado)";
+                            }
+                            $markdownContent .= $itemTitle . "\n\n";
+                            
+                            if (!$hasInclusaoVote && !empty($itemData['texto'])) {
+                                $markdownContent .= "> " . str_replace("\n", "\n> ", trim((string)$itemData['texto'])) . "\n\n";
+                            }
+                            
+                            $markdownContent .= "| Grupo | Voto | Resultado | Relator |\n";
+                            $markdownContent .= "| :--- | :--- | :--- | :--- |\n";
+                            foreach ($itemData['votes'] as $vote) {
+                                $resultadoStr = $vote->resultado;
+                                if ($vote->destaque_minoria) {
+                                    $resultadoStr .= " (⚠ Destaque de Minoria)";
+                                }
+                                $markdownContent .= sprintf(
+                                    "| G%d | %s | %s | %s |\n",
+                                    $vote->grupo,
+                                    $vote->votacao,
+                                    $resultadoStr,
+                                    $vote->user->username
+                                );
+                            }
+                            $markdownContent .= "\n";
+                            
+                            if (!$hasInclusaoVote) {
+                                foreach ($itemData['votes'] as $vote) {
+                                    if (!empty($vote->item_modificada)) {
+                                        $markdownContent .= "**Modificação Proposta (G" . $vote->grupo . "):**\n";
+                                        $markdownContent .= "> " . str_replace("\n", "\n> ", trim((string)$vote->item_modificada)) . "\n\n";
+                                    }
+                                }
+                            }
+                            
+                            if ($hasInclusaoVote && !empty($inclusaoTexto)) {
+                                $markdownContent .= "**Texto de Inclusão:**\n";
+                                $markdownContent .= "> " . str_replace("\n", "\n> ", trim((string)$inclusaoTexto)) . "\n\n";
+                            }
+                        }
+                    }
+                }
+                
+                $response = $this->response;
+                return $response->withType('text/markdown')
+                    ->withHeader('Content-Disposition', 'attachment; filename="relatorio.md"')
+                    ->withStringBody($markdownContent);
+            }
             
             $this->set(compact('votacoes', 'trInput', 'trList'));
         } else {
