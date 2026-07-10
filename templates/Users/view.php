@@ -3,15 +3,25 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\User $user
  */
+$identity = $this->request->getAttribute('identity');
+$isEditorOrAdmin = $identity && ($identity->role === 'admin' || $identity->role === 'editor');
+$canEdit = $isEditorOrAdmin || ($identity && (int)$identity->id === (int)$user->id);
+$canDelete = $isEditorOrAdmin && ($identity && (int)$identity->id !== (int)$user->id);
 ?>
 <div class="card shadow-sm">
 
         <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
             <ul class="navbar navbar-nav ms-auto mt-lg-0">
-                <li class="nav-item"><?= $this->Html->link(__('Edit User'), ['action' => 'edit', $user->id], ['class' => 'btn btn-primary w-100']) ?></li>
-                <li class="nav-item"><?= $this->Form->postLink(__('Delete User'), ['action' => 'delete', $user->id], ['confirm' => __('Are you sure you want to delete # {0}?', $user->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
-                <li class="nav-item"><?= $this->Html->link(__('List Users'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
-                <li class="nav-item"><?= $this->Html->link(__('New User'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+                <?php if ($canEdit): ?>
+                    <li class="nav-item"><?= $this->Html->link(__('Edit User'), ['action' => 'edit', $user->id], ['class' => 'btn btn-primary w-100']) ?></li>
+                <?php endif; ?>
+                <?php if ($canDelete): ?>
+                    <li class="nav-item"><?= $this->Form->postLink(__('Delete User'), ['action' => 'delete', $user->id], ['confirm' => __('Are you sure you want to delete # {0}?', $user->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+                <?php endif; ?>
+                <?php if ($isEditorOrAdmin): ?>
+                    <li class="nav-item"><?= $this->Html->link(__('List Users'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
+                    <li class="nav-item"><?= $this->Html->link(__('New User'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+                <?php endif; ?>
             </ul>
         </nav>
 

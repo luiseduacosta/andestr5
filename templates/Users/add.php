@@ -18,7 +18,17 @@
                 <?php
                     echo $this->Form->control('username', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('password', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('role', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('role', [
+                        'type' => 'select',
+                        'options' => [
+                            'admin' => 'Admin',
+                            'editor' => 'Editor',
+                            'relator' => 'Relator',
+                            'user' => 'User'
+                        ],
+                        'class' => 'form-control',
+                        'label' => ['class' => 'form-label']
+                    ]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-primary']) ?>

@@ -58,7 +58,6 @@ class VotacoesTableTest extends TestCase
      * Test validationDefault method
      *
      * @return void
-     * @uses \App\Model\Table\VotacoesTable::validationDefault()
      */
     public function testValidationDefault(): void
     {
@@ -69,7 +68,6 @@ class VotacoesTableTest extends TestCase
      * Test buildRules method
      *
      * @return void
-     * @uses \App\Model\Table\VotacoesTable::buildRules()
      */
     public function testBuildRules(): void
     {

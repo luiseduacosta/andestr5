@@ -10,8 +10,6 @@ use App\Model\Entity\User;
 
 /**
  * App\Controller\EventosController Test Case
- *
- * @uses \App\Controller\EventosController
  */
 class EventosControllerTest extends TestCase
 {
@@ -98,4 +96,120 @@ class EventosControllerTest extends TestCase
         $this->assertSession(2, 'selected_evento_id');
         $this->assertRedirect();
     }
+
+    /**
+     * Test ativar method with inactive event
+     *
+     * @return void
+     */
+    public function testAtivarInactive(): void
+    {
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session(['Auth' => $user]);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+
+        $this->post('/eventos/ativar/1');
+        $this->assertRedirect();
+
+        // Check if event 1 is active, and event 2 is inactive in the database
+        $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
+        $evento1 = $eventosTable->get(1);
+        $evento2 = $eventosTable->get(2);
+
+        $this->assertTrue($evento1->ativo);
+        $this->assertFalse($evento2->ativo);
+    }
+
+    /**
+     * Test ativar method with already active event
+     *
+     * @return void
+     */
+    public function testAtivarAlreadyActive(): void
+    {
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session(['Auth' => $user]);
+
+        // First, set event 1 as active directly in DB
+        $eventosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Eventos');
+        $evento1 = $eventosTable->get(1);
+        $evento1->ativo = true;
+        $eventosTable->save($evento1);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+
+        // Call ativar on event 1 again
+        $this->post('/eventos/ativar/1');
+        $this->assertRedirect();
+
+        // Check if event 1 remains active
+        $evento1 = $eventosTable->get(1);
+        $this->assertTrue($evento1->ativo, 'Event 1 should remain active when activated again');
+    }
+
+    /**
+     * Test delete method clears selected_evento_id from session if the deleted event was selected
+     *
+     * @return void
+     */
+    public function testDeleteClearsSession(): void
+    {
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 1
+        ]);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+
+        $this->post('/eventos/delete/1');
+        $this->assertRedirect();
+
+        // The session key selected_evento_id should have been cleared (null)
+        $this->assertSession(null, 'selected_evento_id');
+    }
+
+    /**
+     * Test delete method does not clear selected_evento_id from session if a different event is deleted
+     *
+     * @return void
+     */
+    public function testDeleteDoesNotClearOtherSession(): void
+    {
+        $user = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+        $this->session([
+            'Auth' => $user,
+            'selected_evento_id' => 2
+        ]);
+
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+
+        $this->post('/eventos/delete/1');
+        $this->assertRedirect();
+
+        // The session key selected_evento_id should still be 2
+        $this->assertSession(2, 'selected_evento_id');
+    }
 }
+

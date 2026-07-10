@@ -57,7 +57,6 @@ class ApoiosTableTest extends TestCase
      * Test validationDefault method
      *
      * @return void
-     * @uses \App\Model\Table\ApoiosTable::validationDefault()
      */
     public function testValidationDefault(): void
     {
@@ -68,7 +67,6 @@ class ApoiosTableTest extends TestCase
      * Test buildRules method
      *
      * @return void
-     * @uses \App\Model\Table\ApoiosTable::buildRules()
      */
     public function testBuildRules(): void
     {

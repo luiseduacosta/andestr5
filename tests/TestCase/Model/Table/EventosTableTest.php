@@ -57,7 +57,6 @@ class EventosTableTest extends TestCase
      * Test validationDefault method
      *
      * @return void
-     * @uses \App\Model\Table\EventosTable::validationDefault()
      */
     public function testValidationDefault(): void
     {

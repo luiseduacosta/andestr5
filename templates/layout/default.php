@@ -70,6 +70,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <?php if (!$identity || ($identity->role !== 'relator')): ?>
                     <li class="nav-item"><?= $this->Html->link('Eventos', ['controller' => 'Eventos', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
+                    <li class="nav-item"><?= $this->Html->link('GTs', ['controller' => 'Gts', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <?php endif; ?>
                     <li class="nav-item"><?= $this->Html->link('Apoios', ['controller' => 'Apoios', 'action' => 'index'], ['class' => 'nav-link']) ?></li>
                     <li class="nav-item"><?= $this->Html->link('Items', ['controller' => 'Items', 'action' => 'index'], ['class' => 'nav-link']) ?></li>

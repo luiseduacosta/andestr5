@@ -36,12 +36,13 @@ class ItemsController extends AppController
 
         $query = $this->Items->find()
             ->orderBy(['Items.item' => 'ASC'])
-            ->contain(['Apoios', 'Votacoes']);
+            ->contain(['Votacoes']);
 
         $selectedEventoId = $session->read('selected_evento_id');
         if ($selectedEventoId) {
-            $query->innerJoinWith('Apoios')
-                ->where(['Apoios.evento_id' => $selectedEventoId]);
+            $query->matching('Apoios', function ($q) use ($selectedEventoId) {
+                return $q->where(['Apoios.evento_id' => $selectedEventoId]);
+            });
         }
 
         $identity = $this->Authentication->getIdentity();
@@ -57,11 +58,15 @@ class ItemsController extends AppController
             $query->where(['Items.item LIKE' => $trFilter . '.%']);
         }
 
+        // Load Apoios data for the view (CakePHP reuses the matching join)
+        $query->contain(['Apoios']);
+
         // Build available TR options from the same base conditions (without the TR filter)
         $trOptionsQuery = $this->Items->find();
         if ($selectedEventoId) {
-            $trOptionsQuery->innerJoinWith('Apoios')
-                ->where(['Apoios.evento_id' => $selectedEventoId]);
+            $trOptionsQuery->matching('Apoios', function ($q) use ($selectedEventoId) {
+                return $q->where(['Apoios.evento_id' => $selectedEventoId]);
+            });
         }
         if ($identity && $identity->role === 'relator') {
             $trOptionsQuery->where(['OR' => [
@@ -104,7 +109,9 @@ class ItemsController extends AppController
             'sort' => ['Votacoes.data' => 'DESC', 'Votacoes.id' => 'DESC']];
 
         if ($identity && $identity->role === 'relator') {
-            $userGrupo = (int)substr((string)$identity->username, 5);
+            // Extract the group number from the "grupoX" username format.
+            // Username is expected to follow the pattern "grupo" followed by digits.
+            $userGrupo = preg_match('/^grupo(\d+)$/i', (string)$identity->username, $m) ? (int)$m[1] : 0;
             $votacoesContain['queryBuilder'] = function ($query) use ($userGrupo) {
                 return $query->where(['Votacoes.grupo' => $userGrupo]);
             };
@@ -134,7 +141,7 @@ class ItemsController extends AppController
                 $item->user_id = $identity->id;
             }
             if ($this->Items->save($item)) {
-                $this->Flash->success(__('The item has been saved.'));
+                $this->Flash->success(__('Item salvo.'));
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -148,9 +155,9 @@ class ItemsController extends AppController
                 }
             }
             if (!empty($errors)) {
-                $this->Flash->error(__('The item could not be saved: {0}', implode(', ', array_unique($errors))));
+                $this->Flash->error(__('Item não pôde ser salvo: {0}', implode(', ', array_unique($errors))));
             } else {
-                $this->Flash->error(__('The item could not be saved. Please, try again.'));
+                $this->Flash->error(__('Item não pôde ser salvo. Tente novamente.'));
             }
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
@@ -174,9 +181,13 @@ class ItemsController extends AppController
         $item = $this->Items->get($id, contain: []);
         $this->Authorization->authorize($item);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $item = $this->Items->patchEntity($item, $this->request->getData());
+            // Prevent user_id from being changed via form tampering;
+            // ownership is managed server-side after authorization.
+            $data = $this->request->getData();
+            unset($data['user_id']);
+            $item = $this->Items->patchEntity($item, $data);
             if ($this->Items->save($item)) {
-                $this->Flash->success(__('The item has been saved.'));
+                $this->Flash->success(__('Item salvo.'));
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -190,9 +201,9 @@ class ItemsController extends AppController
                 }
             }
             if (!empty($errors)) {
-                $this->Flash->error(__('The item could not be saved: {0}', implode(', ', array_unique($errors))));
+                $this->Flash->error(__('Item não pôde ser salvo: {0}', implode(', ', array_unique($errors))));
             } else {
-                $this->Flash->error(__('The item could not be saved. Please, try again.'));
+                $this->Flash->error(__('Item não pôde ser salvo. Tente novamente.'));
             }
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
@@ -217,9 +228,9 @@ class ItemsController extends AppController
         $item = $this->Items->get($id);
         $this->Authorization->authorize($item);
         if ($this->Items->delete($item)) {
-            $this->Flash->success(__('The item has been deleted.'));
+            $this->Flash->success(__('Item excluído.'));
         } else {
-            $this->Flash->error(__('The item could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Item não pôde ser excluído. Tente novamente.'));
         }
 
         return $this->redirect(['action' => 'index']);

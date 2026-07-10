@@ -10,8 +10,6 @@ use App\Model\Entity\User;
 
 /**
  * App\Controller\VotacoesController Test Case
- *
- * @uses \App\Controller\VotacoesController
  */
 class VotacoesControllerTest extends TestCase
 {
@@ -34,7 +32,6 @@ class VotacoesControllerTest extends TestCase
      * Test index method
      *
      * @return void
-     * @uses \App\Controller\VotacoesController::index()
      */
     public function testIndex(): void
     {
@@ -91,10 +88,38 @@ class VotacoesControllerTest extends TestCase
     }
 
     /**
+     * Test index method with group filtering
+     *
+     * @return void
+     */
+    public function testIndexGroupFilter(): void
+    {
+        $admin = new User([
+            'id' => 1,
+            'role' => 'admin',
+            'username' => 'admin'
+        ]);
+
+        $this->session([
+            'Auth' => $admin,
+            'selected_evento_id' => 1
+        ]);
+
+        // Query with group filter = 1. Vote 1 is from grupo 1, so it should be visible.
+        $this->get('/votacoes?grupo_filter=1');
+        $this->assertResponseOk();
+        $this->assertResponseContains('Item 1');
+
+        // Query with group filter = 2. Vote 1 is from group 1, so it should NOT be visible.
+        $this->get('/votacoes?grupo_filter=2');
+        $this->assertResponseOk();
+        $this->assertResponseNotContains('Item 1');
+    }
+
+    /**
      * Test view method
      *
      * @return void
-     * @uses \App\Controller\VotacoesController::view()
      */
     public function testView(): void
     {
@@ -115,7 +140,6 @@ class VotacoesControllerTest extends TestCase
      * Test add method
      *
      * @return void
-     * @uses \App\Controller\VotacoesController::add()
      */
     public function testAdd(): void
     {
@@ -162,7 +186,6 @@ class VotacoesControllerTest extends TestCase
      * Test edit method
      *
      * @return void
-     * @uses \App\Controller\VotacoesController::edit()
      */
     public function testEdit(): void
     {

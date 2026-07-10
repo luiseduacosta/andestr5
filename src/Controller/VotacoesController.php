@@ -77,9 +77,24 @@ class VotacoesController extends AppController
             $query->where(['Votacoes.tr' => (int)$trFilter]);
         }
 
+        // Grupo filter - check GET param first, then session
+        $grupoFilter = $this->request->getQuery('grupo_filter');
+        
+        if ($grupoFilter !== null) {
+            if ($grupoFilter === 'todos') {
+                $session->delete('votacoes_grupo_filter');
+            } else {
+                $session->write('votacoes_grupo_filter', $grupoFilter);
+            }
+        } else {
+            $grupoFilter = $session->read('votacoes_grupo_filter');
+        }
+
         $identity = $this->Authentication->getIdentity();
         if ($identity && $identity->role === 'relator') {
             $query->where(['Votacoes.grupo' => (int)substr((string)$identity->username, 5)]);
+        } elseif ($grupoFilter && $grupoFilter !== 'todos') {
+            $query->where(['Votacoes.grupo' => (int)$grupoFilter]);
         }
 
         $votacoes = $this->paginate($query);
@@ -100,15 +115,33 @@ class VotacoesController extends AppController
             ->extract('tr')
             ->toArray();
 
+        // Get unique Grupo values for the filter dropdown
+        $grupoValuesQuery = $this->Votacoes->find()
+            ->select(['grupo'])
+            ->distinct('grupo');
+
+        if ($selectedEventoId) {
+            $grupoValuesQuery->where(['Votacoes.evento_id' => $selectedEventoId]);
+        }
+        if ($identity && $identity->role === 'relator') {
+            $grupoValuesQuery->where(['Votacoes.grupo' => (int)substr((string)$identity->username, 5)]);
+        }
+        $grupoValues = $grupoValuesQuery->orderBy(['Votacoes.grupo' => 'ASC'])
+            ->all()
+            ->extract('grupo')
+            ->toArray();
+
         // #region agent log
         $this->agentDebugLog('VotacoesController.php:index', 'TR filter dropdown values', [
             'selectedEventoId' => $selectedEventoId,
             'trValuesCount' => count($trValues),
             'trValues' => $trValues,
+            'grupoValuesCount' => count($grupoValues),
+            'grupoValues' => $grupoValues,
         ], 'D');
         // #endregion
 
-        $this->set(compact('votacoes', 'trValues', 'trFilter'));
+        $this->set(compact('votacoes', 'trValues', 'trFilter', 'grupoValues', 'grupoFilter'));
     }
 
     /**

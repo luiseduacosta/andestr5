@@ -6,16 +6,20 @@
 ?>
 <div class="row g-3">
     <?php $identity = $this->request->getAttribute('identity'); ?>
-    <?php if (!$identity || ($identity->role !== 'relator')): ?>
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
         <ul class="navbar navbar-nav ms-auto mt-lg-0">
             <li class="nav-item"><?= $this->Html->link(__('List Gts'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
+            <?php if ($identity && in_array($identity->role, ['admin', 'editor'])): ?>
             <li class="nav-item"><?= $this->Html->link(__('Edit Gt'), ['action' => 'edit', $gt->id], ['class' => 'btn btn-primary w-100']) ?></li>
+            <?php endif; ?>
+            <?php if ($identity && $identity->role === 'admin'): ?>
             <li class="nav-item"><?= $this->Form->postLink(__('Delete Gt'), ['action' => 'delete', $gt->id], ['confirm' => __('Are you sure you want to delete # {0}?', $gt->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+            <?php endif; ?>
+            <?php if ($identity && in_array($identity->role, ['admin', 'editor'])): ?>
             <li class="nav-item"><?= $this->Html->link(__('New Gt'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
+            <?php endif; ?>
         </ul>
     </nav>
-    <?php endif; ?>
     
     <div class="card shadow-sm">
         <div class="card-header">

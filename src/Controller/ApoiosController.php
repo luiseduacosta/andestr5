@@ -71,14 +71,14 @@ class ApoiosController extends AppController
         $this->set(compact('apoio'));
     }
 
-    public function viewtr($tr = null)
+    public function viewtr()
     {
         $this->Authorization->skipAuthorization();
         $eventoId = $this->request->getQuery('evento_id');
         if (empty($eventoId)) {
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('Evento não especificado'));
         }
-        $tr = $this->request->getQuery('tr') ?: $tr;
+        $tr = $this->request->getQuery('tr');
         if (empty($tr)) {
             throw new \Cake\Datasource\Exception\RecordNotFoundException(__('TR não especificado'));
         }
@@ -98,6 +98,7 @@ class ApoiosController extends AppController
         $apoio = $this->Apoios->find()
             ->contain([
                 'Eventos',
+                'Gts',
                 'Items' => $itemsQueryBuilder
             ])
             ->where([
@@ -127,12 +128,11 @@ class ApoiosController extends AppController
         }
         if ($this->request->is('post')) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
-            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
             if ($selectedEventoId) {
                 $apoio->evento_id = $selectedEventoId;
             }
             if ($this->Apoios->save($apoio)) {
-                $this->Flash->success(__('The apoio has been saved.'));
+                $this->Flash->success(__('Texto de apoio salvo.'));
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -146,9 +146,9 @@ class ApoiosController extends AppController
                 }
             }
             if (!empty($errors)) {
-                $this->Flash->error(__('The apoio could not be saved: {0}', implode(', ', array_unique($errors))));
+                $this->Flash->error(__('Texto de apoio não pôde ser salvo: {0}', implode(', ', array_unique($errors))));
             } else {
-                $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+                $this->Flash->error(__('Texto de apoio não pôde ser salvo. Tente novamente.'));
             }
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
@@ -169,12 +169,8 @@ class ApoiosController extends AppController
         $this->Authorization->authorize($apoio);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $apoio = $this->Apoios->patchEntity($apoio, $this->request->getData());
-            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
-            if ($selectedEventoId) {
-                $apoio->evento_id = $selectedEventoId;
-            }
             if ($this->Apoios->save($apoio)) {
-                $this->Flash->success(__('The apoio has been saved.'));
+                $this->Flash->success(__('Texto de apoio salvo.'));
 
                 return $this->redirect(['action' => 'index']);
             }
@@ -188,9 +184,9 @@ class ApoiosController extends AppController
                 }
             }
             if (!empty($errors)) {
-                $this->Flash->error(__('The apoio could not be saved: {0}', implode(', ', array_unique($errors))));
+                $this->Flash->error(__('Texto de apoio não pôde ser salvo: {0}', implode(', ', array_unique($errors))));
             } else {
-                $this->Flash->error(__('The apoio could not be saved. Please, try again.'));
+                $this->Flash->error(__('Texto de apoio não pôde ser salvo. Tente novamente.'));
             }
         }
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
@@ -211,9 +207,9 @@ class ApoiosController extends AppController
         $apoio = $this->Apoios->get($id);
         $this->Authorization->authorize($apoio);
         if ($this->Apoios->delete($apoio)) {
-            $this->Flash->success(__('The apoio has been deleted.'));
+            $this->Flash->success(__('Texto de apoio excluído.'));
         } else {
-            $this->Flash->error(__('The apoio could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Texto de apoio não pôde ser excluído. Tente novamente.'));
         }
 
         return $this->redirect(['action' => 'index']);

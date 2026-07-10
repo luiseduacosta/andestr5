@@ -36,7 +36,9 @@ $isAdmin = $identity && $identity->role === 'admin';
                     <td class="d-flex flex-wrap gap-2">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $user->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
                         <?= $this->Html->link(__('Edit'), ['action' => 'edit', $user->id], ['class' => 'btn btn-sm btn-outline-secondary']) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $user->id], ['confirm' => __('Are you sure you want to delete # {0}?', $user->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php if ((int)$identity->id !== (int)$user->id): ?>
+                            <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $user->id], ['confirm' => __('Are you sure you want to delete # {0}?', $user->id), 'class' => 'btn btn-sm btn-outline-danger']) ?>
+                        <?php endif; ?>
                         <?php if ($isAdmin && (int)$identity->id !== (int)$user->id): ?>
                             <?= $this->Form->postLink(
                                 __('Impersonate'),

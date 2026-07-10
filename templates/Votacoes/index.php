@@ -10,6 +10,7 @@
     $identityGroup = $identity && $identity->role === 'relator' ? (int)substr((string)$identity->username, 5) : null;
     $session = $this->request->getSession();
     $currentTrFilter = $trFilter ?? $session->read('votacoes_tr_filter') ?? 'todos';
+    $currentGrupoFilter = $grupoFilter ?? $session->read('votacoes_grupo_filter') ?? 'todos';
 ?>
 <div class="card shadow-sm">
 
@@ -36,6 +37,24 @@
                     'type' => 'select',
                     'options' => $trOptions,
                     'value' => $currentTrFilter,
+                    'class' => 'form-select form-select-sm',
+                    'label' => false,
+                    'empty' => false,
+                    'onchange' => 'this.form.submit()',
+                ]) ?>
+            </div>
+            <div class="col-auto">
+                <label class="form-label fw-semibold"><?= __('Filtrar por Grupo') ?></label>
+                <?php
+                    $grupoOptions = ['todos' => __('Todos')];
+                    foreach ($grupoValues ?? [] as $grupo) {
+                        $grupoOptions[(string)$grupo] = 'G' . $grupo;
+                    }
+                ?>
+                <?= $this->Form->control('grupo_filter', [
+                    'type' => 'select',
+                    'options' => $grupoOptions,
+                    'value' => $currentGrupoFilter,
                     'class' => 'form-select form-select-sm',
                     'label' => false,
                     'empty' => false,

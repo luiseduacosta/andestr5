@@ -97,7 +97,7 @@ class ApoiosTable extends Table
 
         $validator
             ->integer('gt_id')
-            ->allowEmptyString('gt_id');
+            ->notEmptyString('gt_id');
 
         $validator
             ->scalar('titulo')

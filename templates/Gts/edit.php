@@ -5,10 +5,13 @@
  */
 ?>
 <div class="row g-3">
+    <?php $identity = $this->request->getAttribute('identity'); ?>
     <nav class="navbar navbar-expand-lg navbar-light bg-light flex-column align-items-stretch p-3 rounded">
         <ul class="navbar-nav ms-auto mt-lg-0">
             <li class="nav-item"><?= $this->Html->link(__('List Gts'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
+            <?php if ($identity && $identity->role === 'admin'): ?>
             <li class="nav-item"><?= $this->Form->postLink(__('Delete Gt'), ['action' => 'delete', $gt->id], ['confirm' => __('Are you sure you want to delete # {0}?', $gt->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>
+            <?php endif; ?>
         </ul>
     </nav>
 

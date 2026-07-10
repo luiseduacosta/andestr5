@@ -36,9 +36,8 @@ class GtsController extends AppController
      */
     public function view($id = null)
     {
-        $this->Authorization->skipAuthorization();
-        
         $gt = $this->Gts->get($id, contain: ['Apoios']);
+        $this->Authorization->authorize($gt);
 
         $this->set(compact('gt'));
     }
@@ -50,9 +49,9 @@ class GtsController extends AppController
      */
     public function add()
     {
-        $this->Authorization->skipAuthorization();
-        
         $gt = $this->Gts->newEmptyEntity();
+        $this->Authorization->authorize($gt, 'create');
+        
         if ($this->request->is('post')) {
             $gt = $this->Gts->patchEntity($gt, $this->request->getData());
             if ($this->Gts->save($gt)) {
@@ -74,9 +73,9 @@ class GtsController extends AppController
      */
     public function edit($id = null)
     {
-        $this->Authorization->skipAuthorization();
-        
         $gt = $this->Gts->get($id);
+        $this->Authorization->authorize($gt, 'update');
+        
         if ($this->request->is(['patch', 'post', 'put'])) {
             $gt = $this->Gts->patchEntity($gt, $this->request->getData());
             if ($this->Gts->save($gt)) {
@@ -98,10 +97,10 @@ class GtsController extends AppController
      */
     public function delete($id = null)
     {
-        $this->Authorization->skipAuthorization();
-        
         $this->request->allowMethod(['post', 'delete']);
         $gt = $this->Gts->get($id);
+        $this->Authorization->authorize($gt);
+        
         if ($this->Gts->delete($gt)) {
             $this->Flash->success(__('The gt has been deleted.'));
         } else {

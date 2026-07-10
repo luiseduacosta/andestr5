@@ -21,7 +21,7 @@ class UserPolicy
      */
     public function canView(IdentityInterface $user, User $resource): bool
     {
-        return true;
+        return $user->role === 'admin' || $user->role === 'editor' || (int)$user->id === (int)$resource->id;
     }
 
     /**
@@ -45,6 +45,9 @@ class UserPolicy
      */
     public function canDelete(IdentityInterface $user, User $resource): bool
     {
+        if ((int)$user->id === (int)$resource->id) {
+            return false;
+        }
         return $user->role === 'admin' || $user->role === 'editor';
     }
 
@@ -53,6 +56,6 @@ class UserPolicy
      */
     public function canImpersonate(IdentityInterface $user, User $resource): bool
     {
-        return $user->role === 'admin';
+        return $user->role === 'admin' && (int)$user->id !== (int)$resource->id;
     }
 }

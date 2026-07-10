@@ -57,7 +57,6 @@ class ItemsTableTest extends TestCase
      * Test validationDefault method
      *
      * @return void
-     * @uses \App\Model\Table\ItemsTable::validationDefault()
      */
     public function testValidationDefault(): void
     {
@@ -68,7 +67,6 @@ class ItemsTableTest extends TestCase
      * Test buildRules method
      *
      * @return void
-     * @uses \App\Model\Table\ItemsTable::buildRules()
      */
     public function testBuildRules(): void
     {

@@ -10,8 +10,6 @@ use App\Model\Entity\User;
 
 /**
  * App\Controller\ApoiosController Test Case
- *
- * @uses \App\Controller\ApoiosController
  */
 class ApoiosControllerTest extends TestCase
 {
@@ -33,7 +31,6 @@ class ApoiosControllerTest extends TestCase
      * Test index method
      *
      * @return void
-     * @uses \App\Controller\ApoiosController::index()
      */
     public function testIndex(): void
     {
@@ -81,7 +78,6 @@ class ApoiosControllerTest extends TestCase
      * Test add method
      *
      * @return void
-     * @uses \App\Controller\ApoiosController::add()
      */
     public function testAdd(): void
     {

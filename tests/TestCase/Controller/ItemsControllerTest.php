@@ -10,8 +10,6 @@ use App\Model\Entity\User;
 
 /**
  * App\Controller\ItemsController Test Case
- *
- * @uses \App\Controller\ItemsController
  */
 class ItemsControllerTest extends TestCase
 {
@@ -34,7 +32,6 @@ class ItemsControllerTest extends TestCase
      * Test index method
      *
      * @return void
-     * @uses \App\Controller\ItemsController::index()
      */
     public function testIndex(): void
     {
@@ -119,7 +116,6 @@ class ItemsControllerTest extends TestCase
      * Test view method
      *
      * @return void
-     * @uses \App\Controller\ItemsController::view()
      */
     public function testView(): void
     {
@@ -151,7 +147,6 @@ class ItemsControllerTest extends TestCase
      * Test add method
      *
      * @return void
-     * @uses \App\Controller\ItemsController::add()
      */
     public function testAdd(): void
     {
@@ -191,14 +186,13 @@ class ItemsControllerTest extends TestCase
         $this->post('/items/add', $invalidData);
         $this->assertResponseOk();
         // The validator returns error messages
-        $this->assertResponseContains('The item could not be saved:');
+        $this->assertResponseContains('Item não pôde ser salvo:');
     }
 
     /**
      * Test edit method
      *
      * @return void
-     * @uses \App\Controller\ItemsController::edit()
      */
     public function testEdit(): void
     {
@@ -235,7 +229,6 @@ class ItemsControllerTest extends TestCase
      * Test delete method
      *
      * @return void
-     * @uses \App\Controller\ItemsController::delete()
      */
     public function testDelete(): void
     {

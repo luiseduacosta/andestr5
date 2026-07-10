@@ -96,6 +96,10 @@ class EventosController extends AppController
         $evento = $this->Eventos->get($id);
         $this->Authorization->authorize($evento);
         if ($this->Eventos->delete($evento)) {
+            $session = $this->request->getSession();
+            if ($session->read('selected_evento_id') == $evento->id) {
+                $session->delete('selected_evento_id');
+            }
             $this->Flash->success(__('The evento has been deleted.'));
         } else {
             $this->Flash->error(__('The evento could not be deleted. Please, try again.'));
@@ -118,9 +122,15 @@ class EventosController extends AppController
         $evento = $this->Eventos->get($id);
         $this->Authorization->authorize($evento);
 
-        $this->Eventos->updateAll(['ativo' => false], ['1 = 1']);
-        $evento->ativo = true;
-        $this->Eventos->save($evento);
+        $this->Eventos->updateAll(
+            ['ativo' => false],
+            ['id !=' => $evento->id, 'ativo' => true]
+        );
+
+        if (!$evento->ativo) {
+            $evento->ativo = true;
+            $this->Eventos->save($evento);
+        }
 
         $this->Flash->success(__('Evento "{0}" ativado para votação.', $evento->nome));
         return $this->redirect($this->referer(['action' => 'index']));
@@ -141,21 +151,24 @@ class EventosController extends AppController
             $eventoId = (int) $this->request->getData('evento_id');
 
             if ($eventoId) {
-                // Deactivate all events first
-                $this->Eventos->updateAll(
-                    ['ativo' => false],
-                    ['ativo' => true]
-                );
+                try {
+                    // Deactivate other active events first
+                    $this->Eventos->updateAll(
+                        ['ativo' => false],
+                        ['id !=' => $eventoId, 'ativo' => true]
+                    );
 
-                // Activate the selected event
-                $evento = $this->Eventos->get($eventoId);
-                $evento->ativo = true;
+                    // Activate the selected event if not already active
+                    $evento = $this->Eventos->get($eventoId);
+                    if (!$evento->ativo) {
+                        $evento->ativo = true;
+                        $this->Eventos->save($evento);
+                    }
 
-                if ($this->Eventos->save($evento)) {
                     $this->request->getSession()->write('selected_evento_id', $eventoId);
                     $this->Flash->success(__('Active event changed.'));
-                } else {
-                    $this->Flash->error(__('Error changing active event.'));
+                } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
+                    $this->Flash->error(__('Selected event not found.'));
                 }
             }
         } else {

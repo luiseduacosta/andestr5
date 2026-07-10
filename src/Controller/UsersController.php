@@ -57,6 +57,7 @@ class UsersController extends AppController
         if ($result && $result->isValid()) {
             $this->Authentication->logout();
         }
+        $this->request->getSession()->delete('impersonated_by');
 
         return $this->redirect(['controller' => 'Users', 'action' => 'login']);
     }
@@ -68,7 +69,7 @@ class UsersController extends AppController
      */
     public function index()
     {
-        $this->Authorization->skipAuthorization();
+        $this->Authorization->authorize($this->Users->newEmptyEntity(), 'index');
         $query = $this->Users->find();
         // $query->contain([
         //     'Votacoes' => fn($q)
@@ -134,11 +135,22 @@ class UsersController extends AppController
         $user = $this->Users->get($id, contain: []);
         $this->Authorization->authorize($user);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $user = $this->Users->patchEntity($user, $this->request->getData());
+            $data = $this->request->getData();
+
+            // Prevent privilege escalation: restrict role editing to admin or editor
+            $identity = $this->Authentication->getIdentity();
+            if (!$identity || ($identity->role !== 'admin' && $identity->role !== 'editor')) {
+                unset($data['role']);
+            }
+
+            $user = $this->Users->patchEntity($user, $data);
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('The user has been saved.'));
 
-                return $this->redirect(['action' => 'index']);
+                if ($identity && ($identity->role === 'admin' || $identity->role === 'editor')) {
+                    return $this->redirect(['action' => 'index']);
+                }
+                return $this->redirect(['action' => 'view', $user->id]);
             }
             $this->Flash->error(__('The user could not be saved. Please, try again.'));
         }
@@ -184,11 +196,13 @@ class UsersController extends AppController
         $session = $this->request->getSession();
         $identity = $this->Authentication->getIdentity();
 
-        // Store the real admin user ID so we can switch back later
-        $session->write('impersonated_by', $identity->id);
+        // Prevent nested impersonation
+        if (!$session->check('impersonated_by')) {
+            $session->write('impersonated_by', $identity->id);
+        }
 
         // Replace the current session identity with the target user
-        $this->Authentication->setIdentity($targetUser->toArray());
+        $this->Authentication->setIdentity($targetUser);
 
         $this->Flash->success(__('You are now impersonating {0}.', h($targetUser->username)));
 
@@ -215,7 +229,7 @@ class UsersController extends AppController
         $adminUser = $this->Users->get($originalAdminId);
 
         // Restore the original admin identity
-        $this->Authentication->setIdentity($adminUser->toArray());
+        $this->Authentication->setIdentity($adminUser);
         $session->delete('impersonated_by');
 
         $this->Flash->success(__('Impersonation ended. You are now logged in as {0}.', h($adminUser->username)));

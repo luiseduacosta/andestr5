@@ -45,6 +45,7 @@ class PolicyTest extends TestCase
     {
         $policy = new UserPolicy();
         $admin = $this->getIdentity(['id' => 1, 'role' => 'admin']);
+        $adminUserEntity = new User(['id' => 1, 'role' => 'admin']);
         $editor = $this->getIdentity(['id' => 2, 'role' => 'editor']);
         $user1 = $this->getIdentity(['id' => 3, 'role' => 'user']);
 
@@ -55,7 +56,8 @@ class PolicyTest extends TestCase
         $this->assertTrue($policy->canIndex($admin));
         $this->assertFalse($policy->canIndex($user1));
         $this->assertTrue($policy->canView($admin, $targetUser));
-        $this->assertTrue($policy->canView($user1, $targetUser));
+        $this->assertFalse($policy->canView($user1, $targetUser));
+        $this->assertTrue($policy->canView($user1, $selfUser));
 
         // Add
         $this->assertTrue($policy->canAdd($admin, $targetUser));
@@ -72,6 +74,11 @@ class PolicyTest extends TestCase
         $this->assertTrue($policy->canDelete($admin, $targetUser));
         $this->assertTrue($policy->canDelete($editor, $targetUser));
         $this->assertFalse($policy->canDelete($user1, $targetUser));
+        $this->assertFalse($policy->canDelete($admin, $adminUserEntity));
+
+        // Impersonate
+        $this->assertTrue($policy->canImpersonate($admin, $targetUser));
+        $this->assertFalse($policy->canImpersonate($admin, $adminUserEntity));
     }
 
     /**
