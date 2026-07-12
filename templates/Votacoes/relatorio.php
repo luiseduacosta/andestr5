@@ -33,42 +33,44 @@ if (!empty($votacoes)) {
             <p class="mb-0 text-white-50"><?= __('Consolidação de itens, propostas de modificações e votos dos grupos de trabalho') ?></p>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-4 col-12 mb-4">
-        <div class="card shadow-sm border-0 p-4 rounded-4">
-            <h4 class="fw-semibold mb-3"><?= __('Configuração do Relatório') ?></h4>
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm border-0 p-3 rounded-4">
             <?= $this->Form->create(null, ['type' => 'get', 'class' => 'needs-validation']) ?>
-                <div class="mb-3">
-                    <label for="trs-input" class="form-label fw-medium"><?= __('Número(s) da(s) TR(s)') ?></label>
-                    <?= $this->Form->control('trs', [
-                        'type' => 'text',
-                        'value' => $trInput,
-                        'id' => 'trs-input',
-                        'class' => 'form-control form-control-lg rounded-3',
-                        'placeholder' => 'Ex: 1, 2, 5',
-                        'label' => false,
-                        'required' => true
-                    ]) ?>
-                    <div class="form-text text-muted mt-2">
-                        <?= __('Insira os números das TRs desejadas separados por vírgula para compilar os resultados.') ?>
+                <div class="row g-2 align-items-end">
+                    <div class="col-lg-8 col-md-7 col-12">
+                        <label for="trs-input" class="form-label fw-medium small mb-1"><?= __('Número(s) da(s) TR(s)') ?></label>
+                        <?= $this->Form->control('trs', [
+                            'type' => 'text',
+                            'value' => $trInput,
+                            'id' => 'trs-input',
+                            'class' => 'form-control rounded-3',
+                            'placeholder' => 'Ex: 1, 2, 5',
+                            'label' => false,
+                            'required' => true
+                        ]) ?>
                     </div>
-                </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-3 shadow-sm d-flex align-items-center justify-content-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-file-earmark-text me-2" viewBox="0 0 16 16">
-                            <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-                            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
-                        </svg>
-                        <?= __('Gerar Relatório') ?>
-                    </button>
+                    <div class="col-lg-2 col-md-3 col-6">
+                        <label class="form-label small mb-1">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary rounded-3 shadow-sm w-100 d-flex align-items-center justify-content-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-text me-1" viewBox="0 0 16 16">
+                                <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                            </svg>
+                            <?= __('Gerar') ?>
+                        </button>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-6 d-flex align-items-end">
+                        <div class="form-text text-muted small mb-0">
+                            <?= __('Insira números separados por vírgula') ?>
+                        </div>
+                    </div>
                 </div>
             <?= $this->Form->end() ?>
         </div>
     </div>
 
-    <div class="col-lg-8 col-12 mb-4">
+    <div class="col-12 mb-4">
         <?php if (!empty($trList) && sizeof($votacoes) > 0): ?>
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h4 class="fw-semibold mb-0"><?= __('Resultado da Compilação') ?></h4>
@@ -205,7 +207,7 @@ if (!empty($votacoes)) {
                     </svg>
                 </div>
                 <h5 class="fw-semibold"><?= __('TR sem votações no(s) grupo {0}', h(implode(', ', $trList))) ?></h5>
-                <p class="text-muted mb-0"><?= __('Por favor, insira um ou mais números de TR na barra lateral para gerar a compilação dos votos.') ?></p>
+                <p class="text-muted mb-0"><?= __('Por favor, insira um ou mais números de TR no campo acima para gerar a compilação dos votos.') ?></p>
             </div>
         <?php endif; ?>
     </div>
