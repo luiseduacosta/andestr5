@@ -28,7 +28,7 @@
                     echo $this->Form->control('evento_id', ['options' => $eventos, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('caderno', ['class' => 'form-control', 'label' => ['class' => 'form-label'], 'options' => $caderno]);
                     echo $this->Form->control('numero_texto', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tema', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('tema', ['class' => 'form-control', 'label' => ['class' => 'form-label'], 'options' => $temas]);
                     echo $this->Form->control('gt_id', ['class' => 'form-control', 'label' => ['class' => 'form-label', 'text' => 'Grupo de Trabalho'], 'options' => $gts]);
                     echo $this->Form->control('titulo', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
                     echo $this->Form->control('autor', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label']]);

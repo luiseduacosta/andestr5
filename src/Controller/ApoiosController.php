@@ -151,9 +151,10 @@ class ApoiosController extends AppController
                 $this->Flash->error(__('Texto de apoio não pôde ser salvo. Tente novamente.'));
             }
         }
+        $temas = ['I' => 'Conjuntura', 'II' => 'Plano de Lutas', 'III' => 'Políticas', 'IV' => 'Questões organizativas e financeiras'];
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
-        $this->set(compact('apoio', 'eventos', 'gts'));
+        $this->set(compact('temas', 'temas', 'eventos', 'gts'));
     }
 
     /**
@@ -189,9 +190,10 @@ class ApoiosController extends AppController
                 $this->Flash->error(__('Texto de apoio não pôde ser salvo. Tente novamente.'));
             }
         }
+        $temas = ['I' => 'Conjuntura', 'II' => 'Plano de Lutas', 'III' => 'Políticas', 'IV' => 'Questões organizativas e financeiras'];
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
-        $this->set(compact('apoio', 'eventos', 'gts'));
+        $this->set(compact('temas', 'apoio', 'eventos', 'gts'));
     }
 
     /**
