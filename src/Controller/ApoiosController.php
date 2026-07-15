@@ -154,7 +154,7 @@ class ApoiosController extends AppController
         $temas = ['I' => 'Conjuntura', 'II' => 'Plano de Lutas', 'III' => 'Políticas', 'IV' => 'Questões organizativas e financeiras'];
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
-        $this->set(compact('temas', 'temas', 'eventos', 'gts'));
+        $this->set(compact('temas', 'apoio', 'eventos', 'gts'));
     }
 
     /**
