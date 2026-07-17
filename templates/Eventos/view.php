@@ -3,6 +3,9 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Evento $evento
  */
+?>
+<?php
+
 function fixEncoding($text)
 {
     if (empty($text)) {
@@ -77,16 +80,20 @@ function fixEncoding($text)
                             </thead>
                             <tbody>
                                 <?php foreach ($evento->apoios as $apoio): ?>
+                                    <?php
+                                    $plainAutor = strip_tags(fixEncoding($apoio->autor));
+                                    $plainTexto = strip_tags(fixEncoding($apoio->texto));
+                                    ?>
                                     <tr>
                                         <td><?= h($apoio->id) ?></td>
                                         <td><?= h($apoio->numero_texto) ?></td>
                                         <td><?= h($apoio->titulo) ?></td>
                                         <td>
                                             <div class="autor-truncated">
-                                                <?= mb_substr(fixEncoding($apoio->autor), 0, 300) ?>
-                                                <?= mb_strlen(fixEncoding($apoio->autor)) > 300 ? '...' : '' ?>
+                                                <?= mb_substr($plainAutor, 0, 300) ?>
+                                                <?= mb_strlen($plainAutor) > 300 ? '...' : '' ?>
                                             </div>
-                                            <?php if (mb_strlen(fixEncoding($apoio->autor)) > 300): ?>
+                                            <?php if (mb_strlen($plainAutor) > 300): ?>
                                                 <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto"
                                                     data-bs-toggle="modal" data-bs-target="#modalAutor<?= $apoio->id ?>">
                                                     <?= __('Ver autor completo') ?>
@@ -104,7 +111,7 @@ function fixEncoding($text)
                                                                     aria-label="Close"></button>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <?= nl2br(h(fixEncoding($apoio->autor))) ?>
+                                                                <?= fixEncoding($apoio->autor) ?>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary"
@@ -118,10 +125,10 @@ function fixEncoding($text)
                                         <td>
                                             <div class="texto-truncated"
                                                 data-full-text="<?= h(json_encode(fixEncoding($apoio->texto))) ?>">
-                                                <?= mb_substr(fixEncoding($apoio->texto), 0, 300) ?>
-                                                <?= mb_strlen(fixEncoding($apoio->texto)) > 300 ? '...' : '' ?>
+                                                <?= mb_substr($plainTexto, 0, 300) ?>
+                                                <?= mb_strlen($plainTexto) > 300 ? '...' : '' ?>
                                             </div>
-                                            <?php if (mb_strlen(fixEncoding($apoio->texto)) > 300): ?>
+                                            <?php if (mb_strlen($plainTexto) > 300): ?>
                                                 <button type="button" class="btn btn-sm btn-link p-0 mt-1 btn-expandir-texto"
                                                     data-bs-toggle="modal" data-bs-target="#modalTexto<?= $apoio->id ?>">
                                                     <?= __('Ver texto completo') ?>
@@ -139,7 +146,7 @@ function fixEncoding($text)
                                                                     aria-label="Close"></button>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <?= nl2br(h(fixEncoding($apoio->texto))) ?>
+                                                                <?= fixEncoding($apoio->texto) ?>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary"
