@@ -29,6 +29,7 @@ function fixEncoding($text) {
         <ul class="navbar navbar-nav ms-auto mt-lg-0">
             <?php $identity = $this->request->getAttribute('identity'); ?>
             <?php if (!$identity || ($identity->role !== 'relator')): ?>
+                <li class="nav-item"><?= $this->Html->link(__('New Item'), ['controller' => 'Items', 'action' => 'add'], ['class' => 'btn btn-outline-secondary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('New Apoio'), ['action' => 'add'], ['class' => 'btn btn-outline-primary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Html->link(__('Edit Apoio'), ['action' => 'edit', $apoio->id], ['class' => 'btn btn-primary w-100']) ?></li>
                 <li class="nav-item"><?= $this->Form->postLink(__('Delete Apoio'), ['action' => 'delete', $apoio->id], ['confirm' => __('Are you sure you want to delete # {0}?', $apoio->id), 'class' => 'btn btn-outline-danger w-100']) ?></li>

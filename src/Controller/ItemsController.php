@@ -121,6 +121,8 @@ class ItemsController extends AppController
             'Apoios',
             'Votacoes' => $votacoesContain,
         ]);
+        $session = $this->request->getSession();
+        $session->write('items_tr_filter', $item->tr);
         $this->Authorization->authorize($item);
         $this->set(compact('item'));
     }
@@ -140,10 +142,35 @@ class ItemsController extends AppController
             if ($identity) {
                 $item->user_id = $identity->id;
             }
+
+            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+            if ($item->apoio_id) {
+                $apoio = $this->Items->Apoios->find()
+                    ->where(['id' => $item->apoio_id])
+                    ->first();
+                if ($apoio) {
+                    if ($selectedEventoId && (int)$apoio->evento_id !== (int)$selectedEventoId) {
+                        $item->setError('apoio_id', __('O apoio não pertence ao evento selecionado.'));
+                    }
+                    if ((int)$apoio->numero_texto !== (int)$item->tr) {
+                        $item->setError('tr', __('Apoios.numero_texto deve ser igual ao Item.tr.'));
+                    }
+                    $expectedPrefix = str_pad((string)$apoio->numero_texto, 2, '0', STR_PAD_LEFT);
+                    $actualPrefix = substr((string)$item->item, 0, 2);
+                    if ($actualPrefix !== $expectedPrefix) {
+                        $item->setError('item', __('Os dois primeiros dígitos do item devem ser iguais a Apoios.numero_texto ({0}).', $expectedPrefix));
+                    }
+                } else {
+                    $item->setError('apoio_id', __('Apoio não encontrado.'));
+                }
+            } else {
+                $item->setError('apoio_id', __('Apoio é obrigatório.'));
+            }
+
             if ($this->Items->save($item)) {
                 $this->Flash->success(__('Item salvo.'));
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'view', $item->id]);
             }
             
             $errors = [];
@@ -162,11 +189,48 @@ class ItemsController extends AppController
         }
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
         $apoiosQuery = $this->Items->Apoios->find('list');
+        $apoiosQuery->orderBy(['Apoios.numero_texto' => 'ASC']);
         if ($selectedEventoId) {
             $apoiosQuery->where(['Apoios.evento_id' => $selectedEventoId]);
         }
+        $trFilter = $this->request->getSession()->read('items_tr_filter');
+        if ($trFilter) {
+            $searchQuery = $this->Items->Apoios->find()
+                ->where(['Apoios.numero_texto' => $trFilter]);
+            if ($selectedEventoId) {
+                $searchQuery->where(['Apoios.evento_id' => $selectedEventoId]);
+            }
+            $matchingApoio = $searchQuery->first();
+            if ($matchingApoio) {
+                $item->apoio_id = $matchingApoio->id;
+            }
+        }
+        $nextItemValue = '';
+        if ($trFilter) {
+            $prefix = str_pad((string)$trFilter, 2, '0', STR_PAD_LEFT);
+            $nextItemValue = $prefix . '.01';
+            if (isset($matchingApoio) && $matchingApoio) {
+                $itemsList = $this->Items->find()
+                    ->where(['apoio_id' => $matchingApoio->id])
+                    ->all();
+                $maxSuffix = 0;
+                foreach ($itemsList as $existingItem) {
+                    $itemCode = $existingItem->item;
+                    if (preg_match('/^\d{2}\.(\d{2})$/', $itemCode, $matches)) {
+                        $suffix = (int)$matches[1];
+                        if ($suffix < 99 && $suffix > $maxSuffix) {
+                            $maxSuffix = $suffix;
+                        }
+                    }
+                }
+                if ($maxSuffix > 0) {
+                    $nextSuffix = str_pad((string)($maxSuffix + 1), 2, '0', STR_PAD_LEFT);
+                    $nextItemValue = $prefix . '.' . $nextSuffix;
+                }
+            }
+        }
         $apoios = $apoiosQuery->all();
-        $this->set(compact('item', 'apoios'));
+        $this->set(compact('item', 'apoios', 'trFilter', 'nextItemValue'));
     }
 
     /**
@@ -186,6 +250,31 @@ class ItemsController extends AppController
             $data = $this->request->getData();
             unset($data['user_id']);
             $item = $this->Items->patchEntity($item, $data);
+
+            $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
+            if ($item->apoio_id) {
+                $apoio = $this->Items->Apoios->find()
+                    ->where(['id' => $item->apoio_id])
+                    ->first();
+                if ($apoio) {
+                    if ($selectedEventoId && (int)$apoio->evento_id !== (int)$selectedEventoId) {
+                        $item->setError('apoio_id', __('O apoio não pertence ao evento selecionado.'));
+                    }
+                    if ((int)$apoio->numero_texto !== (int)$item->tr) {
+                        $item->setError('tr', __('Apoios.numero_texto deve ser igual ao Item.tr.'));
+                    }
+                    $expectedPrefix = str_pad((string)$apoio->numero_texto, 2, '0', STR_PAD_LEFT);
+                    $actualPrefix = substr((string)$item->item, 0, 2);
+                    if ($actualPrefix !== $expectedPrefix) {
+                        $item->setError('item', __('Os dois primeiros dígitos do item devem ser iguais a Apoios.numero_texto ({0}).', $expectedPrefix));
+                    }
+                } else {
+                    $item->setError('apoio_id', __('Apoio não encontrado.'));
+                }
+            } else {
+                $item->setError('apoio_id', __('Apoio é obrigatório.'));
+            }
+
             if ($this->Items->save($item)) {
                 $this->Flash->success(__('Item salvo.'));
 

@@ -17,10 +17,10 @@
             <fieldset>
                 <legend><?= __('Add Item') ?></legend>
                 <?php
-                    echo $this->Form->control('apoio_id', ['options' => $apoios, 'class' => 'form-select', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('tr', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('item', ['class' => 'form-control', 'label' => ['class' => 'form-label']]);
-                    echo $this->Form->control('texto', ['class' => 'form-control markdown-editor', 'label' => ['class' => 'form-label']]);
+                    echo $this->Form->control('apoio_id', ['options' => $apoios, 'class' => 'form-select', 'label' => ['text' => __('Apoio'), 'class' => 'form-label']]);
+                    echo $this->Form->control('tr', ['value' => $trFilter, 'class' => 'form-control', 'label' => ['text' => __('TR'), 'class' => 'form-label']]);
+                    echo $this->Form->control('item', ['value' => $nextItemValue, 'class' => 'form-control', 'label' => ['text' => __('Item'), 'class' => 'form-label']]);
+                    echo $this->Form->control('texto', ['class' => 'form-control markdown-editor', 'label' => ['text' => __('Texto'), 'class' => 'form-label']]);
                 ?>
             </fieldset>
             <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-primary']) ?>

@@ -108,7 +108,7 @@ class ApoiosControllerTest extends TestCase
         $this->enableCsrfToken();
         $this->enableSecurityToken();
         $this->post('/apoios/add', $data);
-        $this->assertRedirect(['action' => 'index']);
+        $this->assertRedirect(['action' => 'view', 5]);
 
         // Check it saved with event_id = 2.
         $apoiosTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Apoios');

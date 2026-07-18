@@ -160,7 +160,38 @@ class ItemsControllerTest extends TestCase
         $this->get('/items/add');
         $this->assertResponseOk();
 
-        // Submit valid item
+        // Test pre-selection and nextItemValue default calculation when items_tr_filter is set to 2 in session
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 2,
+            'items_tr_filter' => 2
+        ]);
+        $this->get('/items/add');
+        $this->assertResponseOk();
+        $this->assertEquals(2, $this->viewVariable('item')->apoio_id);
+        $this->assertEquals('02.01', $this->viewVariable('nextItemValue'));
+
+        // Insert an item with '02.05' format to test nextItemValue increments to '02.06'
+        $itemsTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Items');
+        $itemMock = $itemsTable->newEntity([
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '02.05',
+            'texto' => 'Some existing item text',
+            'user_id' => 1
+        ]);
+        $itemsTable->save($itemMock);
+
+        $this->session([
+            'Auth' => $relator,
+            'selected_evento_id' => 2,
+            'items_tr_filter' => 2
+        ]);
+        $this->get('/items/add');
+        $this->assertResponseOk();
+        $this->assertEquals('02.06', $this->viewVariable('nextItemValue'));
+
+        // Submit valid item (should redirect to view/6 since 5 items are in fixture)
         $data = [
             'apoio_id' => 2,
             'tr' => 2,
@@ -171,7 +202,49 @@ class ItemsControllerTest extends TestCase
         $this->enableCsrfToken();
         $this->enableSecurityToken();
         $this->post('/items/add', $data);
-        $this->assertRedirect(['action' => 'index']);
+        $this->assertRedirect(['action' => 'view', 7]);
+
+        // Submit item with mismatched TR (apoio 2 has numero_texto = 2, we submit tr = 3)
+        $mismatchedTrData = [
+            'apoio_id' => 2,
+            'tr' => 3,
+            'item' => '02.99',
+            'texto' => 'New inclusion item text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/add', $mismatchedTrData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoios.numero_texto deve ser igual ao Item.tr.');
+
+        // Submit item with mismatched item prefix (apoio 2 has numero_texto = 2, we submit item prefix = 03)
+        $mismatchedPrefixData = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '03.99',
+            'texto' => 'New inclusion item text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/add', $mismatchedPrefixData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('Os dois primeiros dígitos do item devem ser iguais a Apoios.numero_texto (02).');
+
+        // Submit item with mismatched selected_evento_id (selected event 1, but support 2 belongs to event 2)
+        $mismatchedEventData = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '02.99',
+            'texto' => 'New inclusion item text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 1]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/add', $mismatchedEventData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('O apoio não pertence ao evento selecionado.');
 
         // Check validation error detailed reporting
         $invalidData = [
@@ -207,10 +280,11 @@ class ItemsControllerTest extends TestCase
         $this->get('/items/edit/5'); // Item 5 owned by user 3
         $this->assertResponseOk();
 
+        // Valid data: support 2 belongs to event 2, has numero_texto = 2.
         $data = [
             'apoio_id' => 2,
-            'tr' => 5,
-            'item' => '05.99',
+            'tr' => 2,
+            'item' => '02.99',
             'texto' => 'Updated item 5 text',
         ];
         $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
@@ -218,6 +292,48 @@ class ItemsControllerTest extends TestCase
         $this->enableSecurityToken();
         $this->post('/items/edit/5', $data);
         $this->assertRedirect(['action' => 'index']);
+
+        // Submit edit with mismatched TR (apoio 2 has numero_texto = 2, we submit tr = 3)
+        $mismatchedTrData = [
+            'apoio_id' => 2,
+            'tr' => 3,
+            'item' => '02.99',
+            'texto' => 'Updated item 5 text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/edit/5', $mismatchedTrData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('Apoios.numero_texto deve ser igual ao Item.tr.');
+
+        // Submit edit with mismatched item prefix (apoio 2 has numero_texto = 2, we submit item prefix = 03)
+        $mismatchedPrefixData = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '03.99',
+            'texto' => 'Updated item 5 text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/edit/5', $mismatchedPrefixData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('Os dois primeiros dígitos do item devem ser iguais a Apoios.numero_texto (02).');
+
+        // Submit edit with mismatched selected_evento_id (selected event 1, but support 2 belongs to event 2)
+        $mismatchedEventData = [
+            'apoio_id' => 2,
+            'tr' => 2,
+            'item' => '02.99',
+            'texto' => 'Updated item 5 text',
+        ];
+        $this->session(['Auth' => $relator, 'selected_evento_id' => 1]);
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/items/edit/5', $mismatchedEventData);
+        $this->assertResponseOk();
+        $this->assertResponseContains('O apoio não pertence ao evento selecionado.');
 
         // 2. Relator cannot edit other user's item
         $this->session(['Auth' => $relator, 'selected_evento_id' => 2]);

@@ -19,6 +19,7 @@ class ApoiosController extends AppController
     {
         $this->Authorization->skipAuthorization();
         $query = $this->Apoios->find()
+            ->order(['Apoios.numero_texto' => 'ASC'])
             ->contain(['Eventos', 'Gts']);
         
         $selectedEventoId = $this->request->getSession()->read('selected_evento_id');
@@ -68,7 +69,9 @@ class ApoiosController extends AppController
             'Gts',
             'Items' => $itemsQueryBuilder
         ]);
-        $this->set(compact('apoio'));
+        $trFilter = $apoio->numero_texto;
+        $this->request->getSession()->write('items_tr_filter', $trFilter);
+        $this->set(compact('apoio', 'trFilter'));
     }
 
     public function viewtr()
@@ -134,7 +137,7 @@ class ApoiosController extends AppController
             if ($this->Apoios->save($apoio)) {
                 $this->Flash->success(__('Texto de apoio salvo.'));
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'view', $apoio->id]);
             }
             
             $errors = [];
@@ -173,7 +176,7 @@ class ApoiosController extends AppController
             if ($this->Apoios->save($apoio)) {
                 $this->Flash->success(__('Texto de apoio salvo.'));
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'view', $apoio->id]);
             }
             
             $errors = [];
