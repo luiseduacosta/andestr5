@@ -59,15 +59,15 @@ function fixEncoding($text) {
                 <dt class="col-sm-4 text-secondary"><?= __('Texto') ?></dt>
                 <dd class="col-sm-8"><?= $this->Number->format($apoio->numero_texto) ?></dd>
             </dl>
-            <div class="text">
+            <div class="bg-white border rounded shadow-sm p-3 mt-3">
                 <strong><?= __('Autor') ?></strong>
-                <blockquote>
+                <blockquote class="border-start border-primary border-3 bg-body-tertiary rounded-end p-3 mt-2 mb-0">
                     <?= $this->Text->autoParagraph(fixEncoding($apoio->autor)); ?>
                 </blockquote>
             </div>
-            <div class="text">
+            <div class="bg-white border rounded shadow-sm p-3 mt-3">
                 <strong><?= __('Texto') ?></strong>
-                <blockquote>
+                <blockquote class="border-start border-primary border-3 bg-body-tertiary rounded-end p-3 mt-2 mb-0">
                     <?= $this->Text->autoParagraph(fixEncoding($apoio->texto)); ?>
                 </blockquote>
             </div>

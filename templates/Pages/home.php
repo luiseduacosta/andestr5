@@ -87,9 +87,9 @@ endif;
     </header>
     <main class="main">
         <div class="container">
-            <div class="content">
+            <div class="bg-white border rounded shadow-sm p-4">
                 <div class="row">
-                    <div class="column">
+                    <div class="col">
                         <div class="message default text-center">
                             <small>Please be aware that this page will not be shown if you turn off debug mode unless you replace templates/Pages/home.php with your own version.</small>
                         </div>
@@ -106,7 +106,7 @@ endif;
                     </div>
                 </div>
                 <div class="row">
-                    <div class="column">
+                    <div class="col">
                         <h4>Environment</h4>
                         <ul>
                         <?php if (version_compare(PHP_VERSION, '8.1.0', '>=')) : ?>
@@ -140,7 +140,7 @@ endif;
                         <?php endif; ?>
                         </ul>
                     </div>
-                    <div class="column">
+                    <div class="col">
                         <h4>Filesystem</h4>
                         <ul>
                         <?php if (is_writable(TMP)) : ?>
@@ -166,7 +166,7 @@ endif;
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="column">
+                    <div class="col">
                         <h4>Database</h4>
                         <?php
                         $result = $checkConnection('default');
@@ -179,7 +179,7 @@ endif;
                         <?php endif; ?>
                         </ul>
                     </div>
-                    <div class="column">
+                    <div class="col">
                         <h4>DebugKit</h4>
                         <ul>
                         <?php if (Plugin::isLoaded('DebugKit')) : ?>

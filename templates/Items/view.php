@@ -30,9 +30,9 @@
                 <dt class="col-sm-4 text-secondary"><?= __('TR') ?></dt>
                 <dd class="col-sm-8"><?= $this->Number->format($item->tr) ?></dd>
             </dl>
-            <div class="text">
+            <div class="bg-white border rounded shadow-sm p-3 mt-3">
                 <strong><?= __('Texto') ?></strong>
-                <blockquote>
+                <blockquote class="border-start border-primary border-3 bg-body-tertiary rounded-end p-3 mt-2 mb-0">
                     <?= $this->Text->autoParagraph($item->texto); ?>
                 </blockquote>
             </div>

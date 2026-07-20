@@ -54,16 +54,16 @@
                 <dd class="col-sm-8"><?= $votacao->data ? h(date('d/m/Y', strtotime((string)$votacao->data))) : '' ?></dd>
             </dl>
             <?php if (!empty($votacao->item_modificada)) : ?>
-                <div class="text">
+                <div class="bg-white border rounded shadow-sm p-3 mt-3">
                     <strong><?= __('Modificação/inclusão') ?></strong>
-                    <blockquote>
+                    <blockquote class="border-start border-primary border-3 bg-body-tertiary rounded-end p-3 mt-2 mb-0">
                         <?= $this->Text->autoParagraph($votacao->item_modificada); ?>
                     </blockquote>
                 </div>
             <?php endif; ?>
-            <div class="text">
+            <div class="bg-white border rounded shadow-sm p-3 mt-3">
                 <strong><?= __('Observações') ?></strong>
-                <blockquote>
+                <blockquote class="border-start border-primary border-3 bg-body-tertiary rounded-end p-3 mt-2 mb-0">
                     <?= $this->Text->autoParagraph(h($votacao->observacoes)); ?>
                 </blockquote>
             </div>
