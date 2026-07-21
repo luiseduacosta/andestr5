@@ -153,11 +153,51 @@ class ApoiosController extends AppController
             } else {
                 $this->Flash->error(__('Texto de apoio não pôde ser salvo. Tente novamente.'));
             }
+        } elseif ($selectedEventoId) {
+            // Suggest the next numero_texto for this evento
+            $apoio->numero_texto = $this->suggestNumeroTexto((int)$selectedEventoId);
         }
         $temas = ['I' => 'Conjuntura', 'II' => 'Plano de Lutas', 'III' => 'Políticas', 'IV' => 'Questões organizativas e financeiras'];
         $eventos = $this->Apoios->Eventos->find('list', limit: 200)->all();
         $gts = $this->Apoios->Gts->find('list', limit: 20)->all();
         $this->set(compact('temas', 'apoio', 'eventos', 'gts'));
+    }
+
+    /**
+     * Suggest the next numero_texto for a given evento.
+     *
+     * Takes the numero_texto of the most recently added apoio (highest id) for
+     * the evento and increments it by one. Since apoios may be inserted in a
+     * non-sequential order, the suggestion is bumped until a free value is found.
+     *
+     * @param int $eventoId Evento id from the session.
+     * @return int
+     */
+    private function suggestNumeroTexto(int $eventoId): int
+    {
+        // numero_texto of the last (highest id) apoio for this evento
+        $lastApoio = $this->Apoios->find()
+            ->select(['numero_texto'])
+            ->where(['evento_id' => $eventoId])
+            ->orderBy(['id' => 'DESC'])
+            ->first();
+
+        $candidate = ($lastApoio ? (int)$lastApoio->numero_texto : 0) + 1;
+
+        // Existing numero_texto values for this evento
+        $existing = $this->Apoios->find()
+            ->select(['numero_texto'])
+            ->where(['evento_id' => $eventoId])
+            ->all()
+            ->extract('numero_texto')
+            ->map(fn($value) => (int)$value)
+            ->toList();
+
+        while (in_array($candidate, $existing, true)) {
+            $candidate++;
+        }
+
+        return $candidate;
     }
 
     /**
